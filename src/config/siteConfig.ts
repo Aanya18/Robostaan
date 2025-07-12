@@ -116,9 +116,9 @@ export const siteConfig = {
   navigation: {
     main: [
       { name: 'Home', path: '/', external: false },
+      { name: 'About', path: '/about', external: false },
       { name: 'Blogs', path: '/blogs', external: false },
       { name: 'Courses', path: '/courses', external: false },
-      { name: 'About', path: '/about', external: false },
       { name: 'Contact', path: '/contact', external: false }
     ],
     footer: [
