@@ -199,12 +199,10 @@ const Blogs: React.FC = () => {
   // Check if current user can edit/delete a blog
   const canManageBlog = (blog: Blog): boolean => {
     if (!user || !profile) return false;
-    
-    // Super admin can manage all blogs
-    if (profile.role === 'admin' && profile.email === 'admin@robostaan.in') {
+    // Any admin can manage all blogs
+    if (profile.role === 'admin') {
       return true;
     }
-    
     // Regular users can only manage their own blogs
     const currentUserAuthor = profile.full_name || profile.email;
     return blog.author === currentUserAuthor;
