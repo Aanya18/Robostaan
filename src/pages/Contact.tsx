@@ -140,9 +140,6 @@ const Contact: React.FC = () => {
                     <p className="text-gray-600 dark:text-gray-300">
                       {siteConfig.contact.email}
                     </p>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      support@{siteConfig.domain}
-                    </p>
                   </div>
                 </div>
 
@@ -157,9 +154,6 @@ const Contact: React.FC = () => {
                     <p className="text-gray-600 dark:text-gray-300">
                       {siteConfig.contact.phone}
                     </p>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      Emergency: +91-XXXXXXXXXX
-                    </p>
                   </div>
                 </div>
 
@@ -173,8 +167,7 @@ const Contact: React.FC = () => {
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300">
                       {siteConfig.legal.companyName}<br />
-                      {siteConfig.contact.address.city}, {siteConfig.contact.address.state}<br />
-                      {siteConfig.contact.address.country}
+                      Jaipur, Rajasthan, India
                     </p>
                   </div>
                 </div>

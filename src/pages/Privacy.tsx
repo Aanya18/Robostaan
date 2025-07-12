@@ -345,25 +345,21 @@ const Privacy: React.FC = () => {
                 <Mail className="w-5 h-5" />
                 <div>
                   <p className="font-semibold">Email</p>
-                  <p className="text-orange-100">privacy@robostaan.com</p>
+                  <p className="text-orange-100">robostaan@gmail.com</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5" />
                 <div>
                   <p className="font-semibold">Phone</p>
-                  <p className="text-orange-100">+1 (555) 123-4567</p>
+                  <p className="text-orange-100">+91-XXXXXXXXXX</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="w-5 h-5" />
                 <div>
                   <p className="font-semibold">Address</p>
-                  <p className="text-orange-100">
-                    123 Robotics Street
-                    <br />
-                    Tech Valley, CA 94000
-                  </p>
+                  <p className="text-orange-100">Jaipur, Rajasthan, India</p>
                 </div>
               </div>
             </div>
