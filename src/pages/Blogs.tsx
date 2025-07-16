@@ -372,7 +372,7 @@ const Blogs: React.FC = () => {
   return (
     <>
       <SEOHead
-        title="Robotics Blog Posts | ROBOSTAAN"
+        title="Our Blogs | ROBOSTAAN"
         description="Discover the latest insights, tutorials, and trends in robotics, AI, and automation technology. Expert articles on programming, machine learning, and cutting-edge robotics."
         keywords={[
           'robotics blog', 'AI articles', 'automation tutorials', 'robotics programming',
@@ -382,7 +382,10 @@ const Blogs: React.FC = () => {
         image={siteConfig.seo.defaultImage}
         url={urlHelpers.fullUrl('/blogs')}
         type="website"
-        structuredData={blogCollectionStructuredData}
+        structuredData={{
+          ...blogCollectionStructuredData,
+          name: "Our Blogs"
+        }}
         canonicalUrl={urlHelpers.fullUrl('/blogs')}
       />
       
@@ -401,7 +404,7 @@ const Blogs: React.FC = () => {
             className="text-center mb-12"
           >
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Robotics Blog
+              Our Blogs
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Discover the latest insights, tutorials, and trends from the world of robotics and automation

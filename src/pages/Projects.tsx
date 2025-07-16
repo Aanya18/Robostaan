@@ -219,13 +219,16 @@ Downloaded from ROBOSTAAN Projects
   return (
     <>
       <SEOHead
-        title={`Projects | ${siteConfig.name}`}
+        title="Our Projects | ROBOSTAAN"
         description="Explore open-source robotics, AI, and automation projects. Download source code, view demos, and contribute to the future of technology."
         keywords={["robotics projects", "AI projects", "automation", "open source", "technology", "STEM", "engineering", "source code", "demos"]}
         image={siteConfig.seo.defaultImage}
         url={urlHelpers.fullUrl('/projects')}
         type="website"
-        structuredData={projectCollectionStructuredData}
+        structuredData={{
+          ...projectCollectionStructuredData,
+          name: "Our Projects"
+        }}
         canonicalUrl={urlHelpers.fullUrl('/projects')}
       />
       <div className="min-h-screen bg-white dark:bg-gray-900 py-6 px-2 sm:py-8 sm:px-4">
@@ -238,7 +241,7 @@ Downloaded from ROBOSTAAN Projects
             className="text-center mb-8 sm:mb-12"
           >
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Project Showcase
+              Our Projects
             </h1>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Explore our collection of open-source projects. Download complete source code and learn from real-world implementations.

@@ -214,7 +214,7 @@ const Courses: React.FC = () => {
             className="text-center mb-12"
           >
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Robotics Courses
+              Our Courses
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Master robotics with our comprehensive courses designed for all skill levels
