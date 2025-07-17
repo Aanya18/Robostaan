@@ -10,7 +10,7 @@
  *   node scripts/updateSitemap.js
  *   npm run update-sitemap
  */
-
+import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
@@ -24,6 +24,8 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
+  console.log(supabaseUrl);
+  console.log(supabaseKey);
   console.error('Error: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables are required');
   process.exit(1);
 }
@@ -134,14 +136,14 @@ async function updateSitemapWithContent(sitemapData) {
     console.log('Fetching blogs from Supabase...');
     const { data: blogs, error: blogsError } = await supabase
       .from('blogs')
-      .select('id, updated_at')
+      .select('slug, updated_at')
       .order('updated_at', { ascending: false });
     
     if (blogsError) {
       console.error('Error fetching blogs:', blogsError);
     } else if (blogs) {
       sitemapData.blogs = blogs.map(blog => ({
-        url: `https://robostaan.in/blog/${blog.id}`,
+        url: `https://robostaan.in/blog/${blog.slug}`,
         lastmod: blog.updated_at ? new Date(blog.updated_at).toISOString().split('T')[0] : undefined,
         changefreq: 'weekly',
         priority: 0.8
@@ -192,7 +194,7 @@ async function generateSitemap() {
     const sitemapPath = path.join(__dirname, '../public/sitemap.xml');
     fs.writeFileSync(sitemapPath, sitemapXML, 'utf8');
     
-    console.log(`✅ Sitemap generated successfully!`);
+    console.log('✅ Sitemap generated successfully!');
     console.log(`📁 Location: ${sitemapPath}`);
     console.log(`📊 Total URLs: ${sitemapData.staticPages.length + sitemapData.blogs.length + sitemapData.courses.length}`);
     console.log(`📄 Static pages: ${sitemapData.staticPages.length}`);
@@ -206,4 +208,4 @@ async function generateSitemap() {
 }
 
 // Run the script
-generateSitemap(); 
+generateSitemap();
