@@ -206,93 +206,28 @@ const Contact: React.FC = () => {
             className="space-y-8"
           >
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                Contact Information
-              </h2>
-              
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                    <Mail className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                      Email
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {siteConfig.contact.email}
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      support@{siteConfig.domain}
-                    </p>
-                  </div>
+              <h2 className="text-2xl font-bold mb-4">Contact Information</h2>
+              <div className="flex items-center mb-6">
+                <span className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-orange-600 text-white mr-4">
+                  {/* Email icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12l-4-4-4 4m8 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6" /></svg>
+                </span>
+                <div>
+                  <div className="font-semibold">Email</div>
+                  <div>robostaan@gmail.com</div>
                 </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                    <Phone className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                      Phone
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {siteConfig.contact.phone}
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      Emergency: +91-XXXXXXXXXX
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                      Address
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {siteConfig.legal.companyName}<br />
-                      {siteConfig.contact.address.city}, {siteConfig.contact.address.state}<br />
-                      {siteConfig.contact.address.country}
-                    </p>
-                  </div>
+              </div>
+              <div className="flex items-center mb-6">
+                <span className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-orange-600 text-white mr-4">
+                  {/* Location icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2zm0 0c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z" /></svg>
+                </span>
+                <div>
+                  <div className="font-semibold">Address</div>
+                  <div>Jaipur</div>
                 </div>
               </div>
             </div>
-
-            {/* Map */}
-            {/* <div className="bg-gray-200 dark:bg-gray-700 rounded-xl h-64 flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-500 dark:text-gray-400">
-                  Interactive map would be embedded here
-                </p>
-              </div>
-            </div> */}
-
-            {/* Office Hours */}
-            {/* <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Office Hours
-              </h3>
-              <div className="space-y-2 text-gray-600 dark:text-gray-300">
-                <div className="flex justify-between">
-                  <span>Monday - Friday</span>
-                  <span>9:00 AM - 6:00 PM IST</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Saturday</span>
-                  <span>10:00 AM - 4:00 PM IST</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sunday</span>
-                  <span>Closed</span>
-                </div>
-              </div>
-            </div> */}
           </motion.div>
         </div>
       </div>
