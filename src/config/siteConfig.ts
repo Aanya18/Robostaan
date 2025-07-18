@@ -120,7 +120,15 @@ export const siteConfig = {
       { name: 'Blogs', path: '/blogs', external: false },
       { name: 'Courses', path: '/courses', external: false },
       { name: 'Projects', path: '/projects', external: false },
-      { name: 'Gallery', path: '/gallery', external: false }, // Added Gallery link
+      {
+        name: 'Community',
+        dropdown: true,
+        children: [
+          { name: 'Gallery', path: '/gallery', external: false },
+          { name: 'Events', path: '/events', external: false },
+          { name: 'Partnership', path: '/partnership', external: false }
+        ]
+      },
       { name: 'Contact', path: '/contact', external: false }
     ],
     footer: [

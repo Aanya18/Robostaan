@@ -96,7 +96,7 @@ const About: React.FC = () => {
                 Our Mission
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
-                At ROBOSTAAN, we believe that robotics is not just a field of study—it's the future of human innovation. 
+                At ROBOSTAAN, we believe that robotics is not just a field of study it's the future of human innovation. 
                 Our mission is to democratize robotics education and make it accessible to learners of all ages and backgrounds.
               </p>
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
@@ -117,16 +117,16 @@ const About: React.FC = () => {
               <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-8 text-white">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold mb-2">10K+</div>
-                    <div className="text-sm opacity-90">Students Enrolled</div>
+                    <div className="text-3xl font-bold mb-2">1K+</div>
+                    <div className="text-sm opacity-90">Student Beneficiaries</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold mb-2">25+</div>
-                    <div className="text-sm opacity-90">Expert Courses</div>
+                    <div className="text-3xl font-bold mb-2">60+</div>
+                    <div className="text-sm opacity-90">Webinars & Seminars Organised</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold mb-2">150+</div>
-                    <div className="text-sm opacity-90">Blog Articles</div>
+                    <div className="text-3xl font-bold mb-2">8+</div>
+                    <div className="text-sm opacity-90">Blogs & Articles</div>
                   </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold mb-2">98%</div>
