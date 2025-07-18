@@ -6,6 +6,7 @@ import { useApp } from '../../context/AppContext';
 
 interface SearchResult {
   id: string;
+  slug?: string;
   title: string;
   type: 'blog' | 'course';
   snippet: string;
@@ -41,6 +42,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ mobileButton, onClick, isModalOpe
       ) {
         searchResults.push({
           id: blog.id,
+          slug: blog.slug, // add slug if available
           title: blog.title,
           type: 'blog',
           snippet: blog.snippet
@@ -159,7 +161,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ mobileButton, onClick, isModalOpe
                   {results.map((result) => (
                     <Link
                       key={`${result.type}-${result.id}`}
-                      to={result.type === 'blog' ? `/blog/${result.id}` : `/course/${result.id}`}
+                      to={
+                        result.type === 'blog'
+                          ? `/blog/${result.slug || result.id}`
+                          : `/course/${result.id}`
+                      }
                       onClick={handleClose}
                       className="block p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
