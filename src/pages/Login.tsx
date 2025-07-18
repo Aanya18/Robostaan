@@ -157,223 +157,233 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center"
-        >
-          <div className="flex justify-center">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="mb-4 flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
+      >
+        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+        Back
+      </button>
+      <div className="flex items-center justify-center">
+        <div className="max-w-md w-full space-y-8">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <div className="flex justify-center">
+              <motion.div
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.5 }}
+                className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center"
+              >
+                <img src={logo} alt="ROBOSTAAN logo" className="w-12 h-12 rounded-full object-contain" />
+              </motion.div>
+            </div>
+            <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
+              Welcome Back
+            </h2>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+              Sign in to your {siteConfig.name} account
+            </p>
+          </motion.div>
+
+          {/* Connection Status */}
+          {connectionStatus === 'checking' && (
             <motion.div
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-              className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center justify-center space-x-2 text-orange-600 dark:text-orange-400"
             >
-              <img src={logo} alt="ROBOSTAAN logo" className="w-12 h-12 rounded-full object-contain" />
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600"></div>
+              <span className="text-sm">Connecting to {siteConfig.name}...</span>
             </motion.div>
-          </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome Back
-          </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Sign in to your {siteConfig.name} account
-          </p>
-        </motion.div>
+          )}
 
-        {/* Connection Status */}
-        {connectionStatus === 'checking' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center justify-center space-x-2 text-orange-600 dark:text-orange-400"
-          >
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600"></div>
-            <span className="text-sm">Connecting to {siteConfig.name}...</span>
-          </motion.div>
-        )}
+          {connectionStatus === 'error' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center justify-center space-x-2 text-red-600 dark:text-red-400"
+            >
+              <WifiOff className="w-4 h-4" />
+              <span className="text-sm">Connection failed. Please check your internet.</span>
+            </motion.div>
+          )}
 
-        {connectionStatus === 'error' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center justify-center space-x-2 text-red-600 dark:text-red-400"
-          >
-            <WifiOff className="w-4 h-4" />
-            <span className="text-sm">Connection failed. Please check your internet.</span>
-          </motion.div>
-        )}
-
-        {/* Auth Error */}
-        {authError && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400"
-          >
-            <AlertCircle className="w-4 h-4" />
-            <span className="text-sm">{authError}</span>
-          </motion.div>
-        )}
-
-        {/* Login Form */}
-        <motion.form
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-8 space-y-6"
-          onSubmit={handleSubmit}
-        >
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email Address
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
-                  placeholder="Enter your email"
-                />
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Password
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="appearance-none relative block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
-                  placeholder="Enter your password"
-                />
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {error && (
+          {/* Auth Error */}
+          {authError && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400"
             >
               <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{error}</span>
+              <span className="text-sm">{authError}</span>
             </motion.div>
           )}
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            disabled={loading || connectionStatus === 'error'}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            ) : (
-              <>
-                <ArrowRight className="w-4 h-4 mr-2" />
-                Sign In
-              </>
-            )}
-          </motion.button>
-
-          {/* Magic Link Login */}
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={handleMagicLink}
-              disabled={!formData.email || magicLinkLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-orange-500 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {magicLinkLoading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
-              ) : (
-                'Login with Magic Link'
-              )}
-            </button>
-            {magicLinkMessage && (
-              <div className="mt-2 text-sm text-orange-600 dark:text-orange-400">{magicLinkMessage}</div>
-            )}
-          </div>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              Don't have an account?{' '}
-              <Link
-                to="/signup"
-                className="font-medium text-orange-500 hover:text-orange-400 transition-colors"
-              >
-                Sign up here
-              </Link>
-            </p>
-          </div>
-        </motion.form>
-
-        {/* Demo Accounts */}
-        {/* {siteConfig.features.demoAccounts && (
-          <motion.div
+          {/* Login Form */}
+          <motion.form
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-8"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-8 space-y-6"
+            onSubmit={handleSubmit}
           >
-            <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Try our demo accounts:
-              </p>
-              <div className="space-y-2">
-                {demoCredentials.map((credential, index) => (
-                  <motion.button
-                    key={credential.email}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-                    onClick={() => handleDemoLogin(credential)}
-                    className="w-full flex items-center justify-between p-3 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email Address
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
+                    placeholder="Enter your email"
+                  />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Password
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    required
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="appearance-none relative block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
+                    placeholder="Enter your password"
+                  />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
-                    <div className="text-left">
-                      <span className="text-gray-700 dark:text-gray-300 font-medium">
-                        {credential.role}
-                      </span>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {credential.description}
-                      </p>
-                    </div>
-                    <span className="text-gray-500 dark:text-gray-400 text-xs">
-                      {credential.email}
-                    </span>
-                  </motion.button>
-                ))}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
-          </motion.div>
-        )} */}
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400"
+              >
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-sm">{error}</span>
+              </motion.div>
+            )}
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={loading || connectionStatus === 'error'}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <ArrowRight className="w-4 h-4 mr-2" />
+                  Sign In
+                </>
+              )}
+            </motion.button>
+
+            {/* Magic Link Login */}
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={handleMagicLink}
+                disabled={!formData.email || magicLinkLoading}
+                className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-orange-500 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {magicLinkLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                ) : (
+                  'Login with Magic Link'
+                )}
+              </button>
+              {magicLinkMessage && (
+                <div className="mt-2 text-sm text-orange-600 dark:text-orange-400">{magicLinkMessage}</div>
+              )}
+            </div>
+
+            <div className="text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Don't have an account?{' '}
+                <Link
+                  to="/signup"
+                  className="font-medium text-orange-500 hover:text-orange-400 transition-colors"
+                >
+                  Sign up here
+                </Link>
+              </p>
+            </div>
+          </motion.form>
+
+          {/* Demo Accounts */}
+          {/* {siteConfig.features.demoAccounts && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="mt-8"
+            >
+              <div className="text-center">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                  Try our demo accounts:
+                </p>
+                <div className="space-y-2">
+                  {demoCredentials.map((credential, index) => (
+                    <motion.button
+                      key={credential.email}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+                      onClick={() => handleDemoLogin(credential)}
+                      className="w-full flex items-center justify-between p-3 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="text-left">
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">
+                          {credential.role}
+                        </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {credential.description}
+                        </p>
+                      </div>
+                      <span className="text-gray-500 dark:text-gray-400 text-xs">
+                        {credential.email}
+                      </span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )} */}
+        </div>
       </div>
     </div>
   );

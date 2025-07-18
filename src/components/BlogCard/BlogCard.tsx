@@ -112,10 +112,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, onEdit, onDelete }) => {
         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mt-auto">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-1">
-              <User className="w-4 h-4" />
-              <span>{blog.author}</span>
-            </div>
-            <div className="flex items-center space-x-1">
               <Calendar className="w-4 h-4" />
               <span>{new Date(blog.created_at).toLocaleDateString()}</span>
             </div>

@@ -218,11 +218,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
                 </span>
               )}
               {/* Show owner/author if not editing */}
-              {!isEditing && currentProject.owner_id && (
-                <span className="text-xs text-gray-500 ml-0 sm:ml-2 mt-1 sm:mt-0">
-                  Created by: <span className="font-medium text-gray-700 dark:text-gray-200">{ownerProfile?.full_name || ownerProfile?.email || currentProject.owner_id}</span>
-                </span>
-              )}
+              {/* Removed author display as per user request */}
               {!isEditing && (
                 <div className="flex flex-wrap items-center space-x-2">
                   {onDownload && (
