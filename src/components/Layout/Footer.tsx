@@ -7,7 +7,6 @@ import { siteConfig, urlHelpers } from '../../config/siteConfig';
 import logo  from  '../../assets/logo.png'
 
 const Footer: React.FC = () => {
-  const currentYear = new Date().getFullYear();
 
   const socialLinks = [
     { icon: Twitter, href: siteConfig.social.twitter, label: 'Twitter' },
@@ -147,19 +146,15 @@ const Footer: React.FC = () => {
 
         {/* Bottom Bar */}
         <div className="mt-8 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">
-            © {currentYear} {siteConfig.legal.companyName}. All rights reserved.
-          </p>
+          <div className="text-sm text-gray-400">© ROBOSTAAN. All rights reserved.</div>
           <div className="flex space-x-6 mt-4 md:mt-0 text-sm text-gray-400">
-            {footerLinks.map((link) => (
-              <Link 
-                key={link.path} 
-                to={link.path} 
-                className="hover:text-orange-500 transition-colors"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {footerLinks
+              .filter(link => link.name !== 'Projects' && link.name !== 'Support')
+              .map((link) => (
+                <Link key={link.name} to={link.path || '/'} className="hover:text-orange-400 transition-colors">
+                  {link.name}
+                </Link>
+              ))}
           </div>
         </div>
       </div>

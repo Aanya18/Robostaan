@@ -6,6 +6,7 @@ import { getSupabaseConnection } from '../lib/supabaseConnection';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../components/Auth/AuthProvider';
 import { siteConfig } from '../config/siteConfig';
+import logo from '../assets/logo.png';
 
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -171,7 +172,7 @@ const Login: React.FC = () => {
               transition={{ duration: 0.5 }}
               className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center"
             >
-              <Settings className="w-8 h-8 text-white" />
+              <img src={logo} alt="ROBOSTAAN logo" className="w-12 h-12 rounded-full object-contain" />
             </motion.div>
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
