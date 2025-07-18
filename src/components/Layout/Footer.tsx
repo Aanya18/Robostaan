@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Settings, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube, Linkedin, Github } from 'lucide-react';
+import { Settings, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react';
 import Newsletter from '../Features/Newsletter';
 import { siteConfig, urlHelpers } from '../../config/siteConfig';
 import logo  from  '../../assets/logo.png'
@@ -13,8 +13,7 @@ const Footer: React.FC = () => {
     { icon: Linkedin, href: siteConfig.social.linkedin, label: 'LinkedIn' },
     { icon: Youtube, href: siteConfig.social.youtube, label: 'YouTube' },
     { icon: Facebook, href: siteConfig.social.facebook, label: 'Facebook' },
-    { icon: Instagram, href: siteConfig.social.instagram, label: 'Instagram' },
-    { icon: Github, href: siteConfig.social.github, label: 'GitHub' }
+    { icon: Instagram, href: siteConfig.social.instagram, label: 'Instagram' }
   ];
 
   const quickLinks = siteConfig.navigation.main;
@@ -66,7 +65,7 @@ const Footer: React.FC = () => {
               {quickLinks.map((link) => (
                 <li key={link.path}>
                   <Link
-                    to={link.path}
+                    to={link.path || '/'}
                     className="text-gray-400 hover:text-orange-500 transition-colors text-sm"
                   >
                     {link.name}
@@ -125,14 +124,6 @@ const Footer: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <Mail className="w-5 h-5" />
                   <span>robostaan@gmail.com</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Phone className="w-4 h-4" />
-                  <span>{siteConfig.contact.phone}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>{siteConfig.contact.address.city}, {siteConfig.contact.address.state}, {siteConfig.contact.address.country}</span>
                 </div>
               </div>
             </div>

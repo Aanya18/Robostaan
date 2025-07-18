@@ -26,7 +26,7 @@ const Home: React.FC = () => {
     { icon: BookOpen, label: 'Blog Posts', value: `${blogs.length}+` },
     { icon: GraduationCap, label: 'Courses', value: `${courses.length}+` },
     { icon: Code, label: 'Projects', value: `${projects.length}+` },
-    { icon: Users, label: 'Students', value: '10K+' }
+    { icon: Users, label: 'Students', value: '1k+' }
   ];
 
   return (
