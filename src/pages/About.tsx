@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Users, Target, Award, Zap, Github, Linkedin, Twitter } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const About: React.FC = () => {
   const teamMembers = [
@@ -235,13 +236,15 @@ const About: React.FC = () => {
             <p className="text-lg mb-8 max-w-2xl mx-auto">
               Be part of the robotics revolution. Start your journey today and unlock your potential in the world of robotics.
             </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center px-8 py-4 bg-white text-orange-500 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-            >
-              Get Started Now
-            </motion.button>
+            <Link to="/signup">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center px-8 py-4 bg-white text-orange-500 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+              >
+                Get Started Now
+              </motion.button>
+            </Link>
           </motion.div>
         </div>
       </section>

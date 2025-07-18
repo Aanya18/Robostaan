@@ -80,14 +80,7 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Resources</h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href={siteConfig.social.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-orange-500 transition-colors text-sm"
-                >
-                  Documentation
-                </a>
+                <span className="text-gray-400 text-sm cursor-not-allowed opacity-60">Documentation</span>
               </li>
               <li>
                 <a
@@ -96,26 +89,14 @@ const Footer: React.FC = () => {
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-orange-500 transition-colors text-sm"
                 >
-                  Tutorials
+                  Youtube
                 </a>
               </li>
               <li>
-                <a
-                  href={siteConfig.social.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-orange-500 transition-colors text-sm"
-                >
-                  Community
-                </a>
+                <span className="text-gray-400 text-sm cursor-not-allowed opacity-60">Community</span>
               </li>
               <li>
-                <Link
-                  to="/contact"
-                  className="text-gray-400 hover:text-orange-500 transition-colors text-sm"
-                >
-                  Support
-                </Link>
+                <span className="text-gray-400 text-sm cursor-not-allowed opacity-60">Support</span>
               </li>
             </ul>
             <div className="mt-4">
