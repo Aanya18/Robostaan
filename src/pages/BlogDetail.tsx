@@ -201,10 +201,6 @@ const BlogDetail: React.FC = () => {
             
             <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 dark:text-gray-300 mb-6">
               <div className="flex items-center space-x-2">
-                <User className="w-4 h-4" />
-                <span>{blog.author}</span>
-              </div>
-              <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4" />
                 <span>{new Date(blog.created_at).toLocaleDateString('en-US', {
                   year: 'numeric',
@@ -296,6 +292,7 @@ const BlogDetail: React.FC = () => {
           />
 
           {/* Author Bio */}
+          {/*
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -310,6 +307,7 @@ const BlogDetail: React.FC = () => {
               about the latest developments in robotics, AI, and automation technology.
             </p>
           </motion.div>
+          */}
 
           {/* Blog Interactions */}
           <motion.div

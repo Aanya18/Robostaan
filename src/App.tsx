@@ -25,6 +25,7 @@ import NotFound from './pages/NotFound';
 import { useEffect } from 'react';
 import { getSupabaseConnection } from './lib/supabaseConnection';
 import GoogleAnalytics from './components/Analytics/GoogleAnalytics';
+import Gallery from './pages/Gallery';
 
 function useSupabasePing() {
   useEffect(() => {
@@ -64,6 +65,7 @@ function App() {
                 <Route path="course/:id" element={<CourseDetail />} />
                 <Route path="about" element={<About />} />
                 <Route path="contact" element={<Contact />} />
+                <Route path="gallery" element={<Gallery />} />
                 <Route path="my-blogs" element={<MyBlogs />} />
                 <Route path="my-courses" element={<MyCourses />} />
                 <Route path="my-projects" element={<MyProjects />} />
