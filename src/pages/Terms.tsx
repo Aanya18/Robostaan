@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Shield, Users, AlertTriangle, Mail, Phone, MapPin } from 'lucide-react';
+import { FileText, Shield, Users, AlertTriangle, Mail,MapPin } from 'lucide-react';
 import { siteConfig } from '../config/siteConfig';
 
 const Terms: React.FC = () => {
@@ -201,13 +201,6 @@ const Terms: React.FC = () => {
                 <div>
                   <p className="font-semibold">Email</p>
                   <p className="text-orange-100">{siteConfig.contact.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5" />
-                <div>
-                  <p className="font-semibold">Phone</p>
-                  <p className="text-orange-100">{siteConfig.contact.phone}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">

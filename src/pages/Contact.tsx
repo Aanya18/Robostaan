@@ -224,7 +224,7 @@ const Contact: React.FC = () => {
                 </span>
                 <div>
                   <div className="font-semibold">Address</div>
-                  <div>Jaipur</div>
+                  <div>Jaipur, Rajasthan, India</div>
                 </div>
               </div>
             </div>

@@ -15,8 +15,7 @@ export const siteConfig = {
   
   // Contact Information
   contact: {
-    email: 'contact@robostaan.in',
-    phone: '+91-XXXXXXXXXX',
+    email: 'robostaan@gmail.com',
     address: {
       country: 'India',
       city: 'Jaipur',
