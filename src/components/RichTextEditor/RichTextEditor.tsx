@@ -50,12 +50,10 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         modules={modules}
         formats={formats}
         placeholder={placeholder}
-        style={{
-          backgroundColor: 'white',
-          color: 'black'
-        }}
+        // Remove inline style, rely on CSS for dark mode
       />
-      <style jsx global>{`
+      <style>
+        {`
         .ql-editor {
           min-height: 200px;
           font-family: 'Inter', sans-serif;
@@ -81,9 +79,22 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           border-color: #4B5563;
         }
         .dark .ql-editor {
-          color: white;
+          color: #f3f4f6;
+          background-color: #374151;
         }
-      `}</style>
+        .dark .ql-toolbar button,
+        .dark .ql-toolbar .ql-picker-label,
+        .dark .ql-toolbar .ql-picker-item {
+          color: #f3f4f6 !important;
+        }
+        .dark .ql-toolbar .ql-stroke {
+          stroke: #f3f4f6 !important;
+        }
+        .dark .ql-toolbar .ql-fill {
+          fill: #f3f4f6 !important;
+        }
+      `}
+      </style>
     </div>
   );
 };

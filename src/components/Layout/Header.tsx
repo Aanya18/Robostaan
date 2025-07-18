@@ -55,21 +55,25 @@ const Header: React.FC = () => {
               item.dropdown ? (
                 <div key={item.name} className="relative group" tabIndex={0}>
                   <button
-                    className="text-sm font-medium transition-colors hover:text-orange-500 flex items-center focus:outline-none"
+                    className={`text-sm font-medium transition-colors flex items-center focus:outline-none ${
+                      isActive('/' + (item.children[0]?.path?.split('/')[1] || ''))
+                        ? 'text-orange-500'
+                        : 'text-gray-700 dark:text-gray-100'
+                    } hover:text-orange-500`}
                     tabIndex={-1}
                   >
                     {item.name}
                     <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                   </button>
                   <div
-                    className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto transition-opacity z-50"
+                    className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto transition-opacity z-50"
                     tabIndex={-1}
                   >
                     {item.children.map((child: any) => (
                       <Link
                         key={child.path || child.name}
                         to={typeof child.path === 'string' ? child.path : '/'}
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-500 rounded"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-orange-50 dark:hover:bg-orange-700 hover:text-orange-500 rounded"
                       >
                         {child.name}
                       </Link>
