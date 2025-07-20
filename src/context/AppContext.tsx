@@ -140,7 +140,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const fetchDataWithTimeout = async (forceRefresh = false) => {
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Data fetch timeout')), 10000)
+      setTimeout(() => reject(new Error('Data fetch timeout')), 30000)
     );
     try {
       await Promise.race([fetchData(forceRefresh), timeoutPromise]);
