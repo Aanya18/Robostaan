@@ -1,3 +1,183 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Quill Content Display Styles */
+.ql-editor-content {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: #374151 !important; /* Default dark gray for light mode */
+}
+
+.dark .ql-editor-content {
+  color: #f3f4f6 !important; /* Light gray for dark mode */
+}
+
+.ql-editor-content h1, .ql-editor-content h2, .ql-editor-content h3, .ql-editor-content h4, .ql-editor-content h5, .ql-editor-content h6 {
+  font-weight: bold;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+  color: #1f2937; /* Dark color for headings in light mode */
+}
+
+.dark .ql-editor-content h1, .dark .ql-editor-content h2, .dark .ql-editor-content h3, .dark .ql-editor-content h4, .dark .ql-editor-content h5, .dark .ql-editor-content h6 {
+  color: #ffffff; /* Pure white for headings in dark mode */
+}
+
+.ql-editor-content h1 { font-size: 2.25rem; }
+.ql-editor-content h2 { font-size: 1.875rem; }
+.ql-editor-content h3 { font-size: 1.5rem; }
+.ql-editor-content h4 { font-size: 1.25rem; }
+.ql-editor-content h5 { font-size: 1.125rem; }
+.ql-editor-content h6 { font-size: 1rem; }
+
+.ql-editor-content p {
+  margin-bottom: 1em;
+  line-height: 1.6;
+  color: #4b5563; /* Medium gray for paragraphs in light mode */
+}
+
+.dark .ql-editor-content p {
+  color: #e5e7eb; /* Light gray for paragraphs in dark mode */
+}
+
+.ql-editor-content strong {
+  font-weight: bold;
+  color: #1f2937; /* Dark color for bold text in light mode */
+}
+
+.dark .ql-editor-content strong {
+  color: #ffffff; /* White for bold text in dark mode */
+}
+
+.ql-editor-content em {
+  font-style: italic;
+}
+
+.ql-editor-content u {
+  text-decoration: underline;
+}
+
+.ql-editor-content s {
+  text-decoration: line-through;
+}
+
+.ql-editor-content ol, .ql-editor-content ul {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.ql-editor-content ol li {
+  list-style-type: decimal;
+  margin-bottom: 0.5em;
+  color: #4b5563; /* Medium gray for list items in light mode */
+}
+
+.dark .ql-editor-content ol li {
+  color: #e5e7eb; /* Light gray for list items in dark mode */
+}
+
+.ql-editor-content ul li {
+  list-style-type: disc;
+  margin-bottom: 0.5em;
+  color: #4b5563; /* Medium gray for list items in light mode */
+}
+
+.dark .ql-editor-content ul li {
+  color: #e5e7eb; /* Light gray for list items in dark mode */
+}
+
+.ql-editor-content blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1em;
+  margin: 1em 0;
+  font-style: italic;
+  color: #6b7280;
+}
+
+.dark .ql-editor-content blockquote {
+  border-left-color: #4b5563;
+  color: #9ca3af;
+}
+
+.ql-editor-content pre {
+  background-color: #f3f4f6;
+  border-radius: 0.375rem;
+  padding: 1em;
+  margin: 1em 0;
+  overflow-x: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: #1f2937;
+}
+
+.dark .ql-editor-content pre {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
+.ql-editor-content code {
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.875em;
+  color: #1f2937;
+}
+
+.dark .ql-editor-content code {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
+.ql-editor-content a {
+  color: #f97316;
+  text-decoration: underline;
+}
+
+.ql-editor-content a:hover {
+  color: #ea580c;
+}
+
+.dark .ql-editor-content a {
+  color: #fb923c;
+}
+
+.dark .ql-editor-content a:hover {
+  color: #f97316;
+}
+
+.ql-editor-content .ql-align-center {
+  text-align: center;
+}
+
+.ql-editor-content .ql-align-right {
+  text-align: right;
+}
+
+.ql-editor-content .ql-align-justify {
+  text-align: justify;
+}
+
+.ql-editor-content .ql-indent-1 {
+  padding-left: 3em;
+}
+
+.ql-editor-content .ql-indent-2 {
+  padding-left: 6em;
+}
+
+.ql-editor-content .ql-indent-3 {
+  padding-left: 9em;
+}
+
+/* Ensure ql-editor for the actual editor component maintains its styling */
+.ql-editor {
+  /* Keep original styles for the editor component */
+  min-height: 200px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}

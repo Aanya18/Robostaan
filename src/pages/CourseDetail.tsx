@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Clock, Users, Star, Play, Download, BookOpen } from 'lucide-react';
 import { getSupabaseConnection } from '../lib/supabaseConnection';
+import QuillContent from '../components/RichTextEditor/QuillContent';
 
 type Course = {
   id: string;
@@ -206,9 +207,9 @@ const CourseDetail: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 Course Content
               </h2>
-              <div
-                className="prose prose-lg max-w-none dark:prose-invert course-content text-gray-800 dark:text-gray-200"
-                dangerouslySetInnerHTML={{ __html: course.content }}
+              <QuillContent 
+                content={course.content}
+                className="prose prose-lg max-w-none course-content"
               />
             </motion.div>
           </div>

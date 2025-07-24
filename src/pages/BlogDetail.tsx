@@ -11,6 +11,7 @@ import { siteConfig, urlHelpers } from '../config/siteConfig';
 import supabaseService from '../lib/supabaseService';
 import { usePublicBlogViews } from '../lib/useSupabase';
 import { useAuth } from '../components/Auth/AuthProvider';
+import QuillContent from '../components/RichTextEditor/QuillContent';
 
 type Blog = {
   id: string;
@@ -287,9 +288,12 @@ const BlogDetail: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="prose prose-lg max-w-none dark:prose-invert dark:text-gray-200 prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-700 dark:prose-p:text-gray-200 prose-a:text-orange-500 dark:prose-a:text-orange-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-orange-600 dark:prose-code:text-orange-400 prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800"
-            dangerouslySetInnerHTML={{ __html: blog.content }}
-          />
+          >
+            <QuillContent 
+              content={blog.content}
+              className="prose prose-lg max-w-none"
+            />
+          </motion.div>
 
           {/* Author Bio */}
           {/*
