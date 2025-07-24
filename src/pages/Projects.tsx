@@ -361,15 +361,66 @@ Downloaded from ROBOSTAAN Projects
             ))}
           </div>
 
-          {filteredProjects.length === 0 && !loading && (
+          {/* Coming Soon Section for Projects */}
+          {projects.length === 0 && !loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-6 sm:p-8 text-center text-white mb-8 mx-2 sm:mx-0"
+            >
+              <div className="max-w-4xl mx-auto">
+                <Code className="w-12 h-12 mx-auto mb-4 opacity-90" />
+                <h2 className="text-2xl font-bold mb-3">Amazing Projects Coming Soon!</h2>
+                <p className="text-base mb-6 opacity-90">
+                  Incredible robotics projects for hands-on learning are being built!
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                  <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                    <div className="flex items-center mb-2">
+                      <Code className="w-5 h-5 mr-2" />
+                      <h3 className="font-semibold">Open Source Projects</h3>
+                    </div>
+                    <p className="text-sm opacity-90">Complete source code with docs</p>
+                  </div>
+                  <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                    <div className="flex items-center mb-2">
+                      <Download className="w-5 h-5 mr-2" />
+                      <h3 className="font-semibold">Downloadable Resources</h3>
+                    </div>
+                    <p className="text-sm opacity-90">Ready-to-use project files</p>
+                  </div>
+                  <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                    <div className="flex items-center mb-2">
+                      <Eye className="w-5 h-5 mr-2" />
+                      <h3 className="font-semibold">Live Demos</h3>
+                    </div>
+                    <p className="text-sm opacity-90">Interactive previews</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* No Results Found (when searching) */}
+          {filteredProjects.length === 0 && projects.length > 0 && !loading && (
             <div className="text-center py-12">
-              <Code className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No projects found
+                No projects match your search
               </h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                Try adjusting your search criteria or check back later for new projects.
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                Try adjusting your search criteria or browse different categories.
               </p>
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('');
+                }}
+                className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                Clear Filters
+              </button>
             </div>
           )}
 
