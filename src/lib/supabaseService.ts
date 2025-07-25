@@ -82,6 +82,25 @@ export interface BlogView {
   session_id?: string;
 }
 
+export interface GalleryImage {
+  id: string;
+  title?: string;
+  description?: string;
+  cloudinary_url: string;
+  cloudinary_public_id: string;
+  cloudinary_secure_url: string;
+  tags: string[];
+  width?: number;
+  height?: number;
+  file_size?: number;
+  format?: string;
+  uploaded_by?: string;
+  created_at: string;
+  updated_at: string;
+  is_featured: boolean;
+  display_order: number;
+}
+
 // Service class for serverless-optimized data access with connection pooling
 class SupabaseService {
   private readonly connection = getSupabaseConnection();
@@ -644,6 +663,121 @@ class SupabaseService {
 
   async shutdownPool(): Promise<void> {
     return this.connectionPool.shutdown();
+  }
+  // ========== GALLERY IMAGE OPERATIONS ==========
+
+  async getGalleryImages(options: {
+    limit?: number;
+    offset?: number;
+    featured?: boolean;
+    tags?: string[];
+    search?: string;
+  } = {}): Promise<{ data: GalleryImage[]; error: any }> {
+    // Use connection pool for high-traffic operations
+    return this.connectionPool.executeWithConnection(async (client: SupabaseClient) => {
+      console.log('🔍 SupabaseService: Starting gallery images query...');
+      
+      let query = client.from('gallery_images').select('*');
+
+      if (options.featured !== undefined) {
+        query = query.eq('is_featured', options.featured);
+      }
+
+      if (options.tags && options.tags.length > 0) {
+        query = query.overlaps('tags', options.tags);
+      }
+
+      if (options.search) {
+        query = query.or(`title.ilike.%${options.search}%,description.ilike.%${options.search}%`);
+      }
+
+      if (options.limit) {
+        query = query.limit(options.limit);
+      }
+
+      if (options.offset) {
+        query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
+      }
+
+      query = query.order('display_order', { ascending: true })
+                  .order('created_at', { ascending: false });
+      
+      console.log('🚀 SupabaseService: Executing query...');
+      const { data, error } = await query;
+      
+      console.log('📊 SupabaseService: Query result:', { 
+        dataLength: data?.length, 
+        error: error ? error.message : null,
+        sampleData: data?.[0] 
+      });
+      
+      return { data: data ?? [], error };
+    });
+  }
+
+  async getGalleryImageById(id: string): Promise<{ data: GalleryImage | null; error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      return await client
+        .from('gallery_images')
+        .select('*')
+        .eq('id', id)
+        .single();
+    });
+  }
+
+  async createGalleryImage(image: Omit<GalleryImage, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: GalleryImage | null; error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      return await client
+        .from('gallery_images')
+        .insert(image)
+        .select()
+        .single();
+    });
+  }
+
+  async updateGalleryImage(id: string, updates: Partial<GalleryImage>): Promise<{ data: GalleryImage | null; error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      return await client
+        .from('gallery_images')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+    });
+  }
+
+  async deleteGalleryImage(id: string): Promise<{ error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      return await client
+        .from('gallery_images')
+        .delete()
+        .eq('id', id);
+    });
+  }
+
+  async deleteGalleryImageByPublicId(publicId: string): Promise<{ error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      return await client
+        .from('gallery_images')
+        .delete()
+        .eq('cloudinary_public_id', publicId);
+    });
+  }
+
+  async updateGalleryImageOrder(imageUpdates: { id: string; display_order: number }[]): Promise<{ error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      const promises = imageUpdates.map(update =>
+        client
+          .from('gallery_images')
+          .update({ display_order: update.display_order, updated_at: new Date().toISOString() })
+          .eq('id', update.id)
+      );
+      
+      const results = await Promise.all(promises);
+      const errors = results.filter(result => result.error);
+      
+      return { error: errors.length > 0 ? errors : null };
+    });
   }
 }
 
