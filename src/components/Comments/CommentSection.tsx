@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Send, Reply, Trash2, Edit3, X, Wifi, WifiOff } from 'lucide-react';
+import { MessageCircle, Send, Reply, Trash2, Edit3, X, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { getSupabaseConnection } from '../../lib/supabaseConnection';
 import { useAuth } from '../Auth/AuthProvider';
+import { useApp } from '../../context/AppContext';
 import { useCommentQueue } from '../../lib/useRequestQueue';
 
 interface Comment {
@@ -14,7 +15,7 @@ interface Comment {
   parent_id?: string;
   created_at: string;
   updated_at: string;
-  user_profiles: {
+  user_profiles?: {
     full_name: string;
     avatar_url?: string;
   };
@@ -26,10 +27,12 @@ interface CommentSectionProps {
   courseId?: string;
   isOpen: boolean;
   onClose: () => void;
+  onUpdate?: () => void; // Add onUpdate callback
 }
 
-const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpen, onClose }) => {
+const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpen, onClose, onUpdate }) => {
   const { user, profile } = useAuth();
+  const { isAdmin } = useApp();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -62,15 +65,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
       const supabase = await getSupabaseConnection().getClient();
       
       // First, fetch top-level comments (no parent_id)
+      // Simple query without user_profiles join for now to debug
       let query = supabase
         .from('comments')
-        .select(`
-          *,
-          user_profiles (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .is('parent_id', null)
         .order('created_at', { ascending: false });
 
@@ -82,12 +80,15 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
 
       const { data: topLevelComments, error } = await query;
 
+      console.log('📝 Comments query result:', { topLevelComments, error, blogId, courseId });
+
       if (error) {
-        console.error('Error fetching comments:', error);
+        console.error('❌ Error fetching comments:', error);
         throw error;
       }
 
       if (!topLevelComments || topLevelComments.length === 0) {
+        console.log('📭 No comments found');
         setComments([]);
         return;
       }
@@ -98,13 +99,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
           try {
             const { data: replies, error: repliesError } = await supabase
               .from('comments')
-              .select(`
-                *,
-                user_profiles (
-                  full_name,
-                  avatar_url
-                )
-              `)
+              .select('*')
               .eq('parent_id', comment.id)
               .order('created_at', { ascending: true });
 
@@ -132,25 +127,47 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !newComment.trim() || loading) return;
+    if (!newComment.trim() || loading) return;
+
+    // Generate anonymous user ID if not logged in
+    const userId = user?.id || `anonymous_${localStorage.getItem('robostaan_blog_session_id') || crypto.randomUUID()}`;
+    
+    // Store anonymous session ID for consistency
+    if (!user && !localStorage.getItem('robostaan_blog_session_id')) {
+      localStorage.setItem('robostaan_blog_session_id', userId.replace('anonymous_', ''));
+    }
 
     setLoading(true);
     try {
+      console.log('🚀 Queueing comment:', { 
+        content: newComment.trim(), 
+        userId, 
+        blogId, 
+        courseId 
+      });
       
       await queueComment(
         newComment.trim(),
-        user.id,
+        userId,
         blogId,
         courseId
       );
 
+      console.log('✅ Comment queued successfully');
       setNewComment('');
+      
+      // Immediately trigger refresh of parent component counts
+      onUpdate?.();
       
       // Fetch comments after a short delay to allow queue processing
       setTimeout(() => {
+        console.log('🔄 Refetching comments...');
         fetchComments();
-      }, 1000);
+        // Trigger another refresh to ensure counts are accurate
+        onUpdate?.();
+      }, 1000); // Reduced delay from 1500ms to 1000ms
     } catch (error) {
+      console.error('❌ Failed to queue comment:', error);
       alert('Failed to queue comment. Please try again.');
     } finally {
       setLoading(false);
@@ -158,14 +175,22 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
   };
 
   const handleSubmitReply = async (parentId: string) => {
-    if (!user || !replyContent.trim() || loading) return;
+    if (!replyContent.trim() || loading) return;
+
+    // Generate anonymous user ID if not logged in
+    const userId = user?.id || `anonymous_${localStorage.getItem('robostaan_blog_session_id') || crypto.randomUUID()}`;
+    
+    // Store anonymous session ID for consistency
+    if (!user && !localStorage.getItem('robostaan_blog_session_id')) {
+      localStorage.setItem('robostaan_blog_session_id', userId.replace('anonymous_', ''));
+    }
 
     setLoading(true);
     try {
       
       await queueReply(
         replyContent.trim(),
-        user.id,
+        userId,
         parentId,
         blogId,
         courseId
@@ -174,10 +199,16 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
       setReplyTo(null);
       setReplyContent('');
       
+      // Immediately trigger refresh of parent component counts
+      onUpdate?.();
+      
       // Fetch comments after a short delay to allow queue processing
       setTimeout(() => {
+        console.log('🔄 Refetching comments...');
         fetchComments();
-      }, 1000);
+        // Trigger another refresh to ensure counts are accurate
+        onUpdate?.();
+      }, 1000); // Reduced delay from 1500ms to 1000ms
     } catch (error) {
       alert('Failed to queue reply. Please try again.');
     } finally {
@@ -196,10 +227,16 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
       setEditingComment(null);
       setEditContent('');
       
+      // Immediately trigger refresh of parent component counts
+      onUpdate?.();
+      
       // Fetch comments after a short delay to allow queue processing
       setTimeout(() => {
+        console.log('🔄 Refetching comments...');
         fetchComments();
-      }, 1000);
+        // Trigger another refresh to ensure counts are accurate  
+        onUpdate?.();
+      }, 1000); // Reduced delay from 1500ms to 1000ms
     } catch (error) {
       alert('Failed to queue comment edit. Please try again.');
     } finally {
@@ -208,17 +245,60 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!confirm('Are you sure you want to delete this comment?')) return;
+    // Find the comment being deleted to check ownership
+    const findComment = (comments: Comment[], id: string): Comment | null => {
+      for (const comment of comments) {
+        if (comment.id === id) return comment;
+        if (comment.replies) {
+          const found = findComment(comment.replies, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    
+    const comment = findComment(comments, commentId);
+    const currentUserId = user?.id || `anonymous_${localStorage.getItem('robostaan_blog_session_id')}`;
+    const isOwner = comment?.user_id === currentUserId;
+    
+    const confirmMessage = isAdmin && !isOwner 
+      ? 'Are you sure you want to delete this comment? (Admin action)'
+      : 'Are you sure you want to delete this comment?';
+    
+    if (!confirm(confirmMessage)) return;
 
     setLoading(true);
     try {
+      console.log(`🗑️ Comment deletion: ${isAdmin && !isOwner ? 'Admin' : 'Owner'} deleting comment ${commentId}`);
       
       await queueDeleteComment(commentId);
       
-      // Fetch comments after a short delay to allow queue processing
+      // Immediately update UI by removing the comment from local state
+      setComments(prev => {
+        const removeCommentRecursively = (comments: Comment[]): Comment[] => {
+          return comments.filter(comment => {
+            if (comment.id === commentId) {
+              return false; // Remove this comment
+            }
+            if (comment.replies) {
+              comment.replies = removeCommentRecursively(comment.replies);
+            }
+            return true;
+          });
+        };
+        return removeCommentRecursively(prev);
+      });
+      
+      // Immediately trigger refresh of parent component counts
+      onUpdate?.();
+      
+      // Fetch comments after a short delay to sync with database
       setTimeout(() => {
+        console.log('🔄 Refetching comments...');
         fetchComments();
-      }, 1000);
+        // Trigger another refresh to ensure counts are accurate
+        onUpdate?.();
+      }, 1000); // Reduced delay from 1500ms to 1000ms
     } catch (error) {
       alert('Failed to queue comment deletion. Please try again.');
     } finally {
@@ -229,6 +309,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
   const getInitials = (name: string) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  // Calculate total comment count including replies
+  const getTotalCommentCount = () => {
+    return comments.reduce((total, comment) => {
+      return total + 1 + (comment.replies?.length || 0);
+    }, 0);
   };
 
   const formatDate = (dateString: string) => {
@@ -256,8 +343,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
     >
       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
         <div className="flex items-start space-x-3">
-          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-            {comment.user_profiles?.avatar_url ? (
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 ${
+            comment.user_id?.startsWith('anonymous_') ? 'bg-gray-500' : 'bg-orange-500'
+          }`}>
+            {!comment.user_id?.startsWith('anonymous_') && comment.user_profiles?.avatar_url ? (
               <img
                 src={comment.user_profiles.avatar_url}
                 alt={comment.user_profiles.full_name || 'User'}
@@ -269,8 +358,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
                 }}
               />
             ) : null}
-            <span className={`text-white text-sm font-medium ${comment.user_profiles?.avatar_url ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
-              {getInitials(comment.user_profiles?.full_name || 'User')}
+            <span className={`text-white text-sm font-medium ${
+              (!comment.user_id?.startsWith('anonymous_') && comment.user_profiles?.avatar_url) ? 'hidden' : 'flex'
+            } items-center justify-center w-full h-full`}>
+              {comment.user_id?.startsWith('anonymous_') 
+                ? 'A' 
+                : getInitials(comment.user_profiles?.full_name || 'User')}
             </span>
           </div>
 
@@ -278,7 +371,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
             <div className="flex items-center justify-between mb-2">
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white">
-                  {comment.user_profiles?.full_name || 'Anonymous User'}
+                  {(comment.user_id?.startsWith('anonymous_') || !comment.user_profiles?.full_name) 
+                    ? 'Anonymous User' 
+                    : comment.user_profiles.full_name}
                 </h4>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {formatDate(comment.created_at)}
@@ -286,25 +381,38 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
                 </p>
               </div>
 
-              {user?.id === comment.user_id && (
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => {
-                      setEditingComment(comment.id);
-                      setEditContent(comment.content);
-                    }}
-                    className="text-gray-400 hover:text-blue-500 transition-colors"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteComment(comment.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+              {(() => {
+                const currentUserId = user?.id || `anonymous_${localStorage.getItem('robostaan_blog_session_id')}`;
+                const isCommentOwner = currentUserId === comment.user_id;
+                const canEdit = isCommentOwner; // Only comment owner can edit
+                const canDelete = isCommentOwner || isAdmin; // Comment owner OR admin can delete
+                
+                return (isCommentOwner || isAdmin) && (
+                  <div className="flex items-center space-x-2">
+                    {canEdit && (
+                      <button
+                        onClick={() => {
+                          setEditingComment(comment.id);
+                          setEditContent(comment.content);
+                        }}
+                        className="text-gray-400 hover:text-blue-500 transition-colors"
+                        title="Edit comment"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                        title={isAdmin && !isCommentOwner ? "Delete comment (Admin)" : "Delete comment"}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {editingComment === comment.id ? (
@@ -340,7 +448,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
                   {comment.content}
                 </p>
 
-                {!isReply && user && (
+                {!isReply && (
                   <button
                     onClick={() => setReplyTo(comment.id)}
                     className="flex items-center space-x-1 text-sm text-orange-500 hover:text-orange-600 transition-colors"
@@ -421,30 +529,61 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
               <div className="flex items-center space-x-2">
                 <MessageCircle className="w-5 h-5 text-orange-500" />
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Comments ({comments.length})
+                  Comments ({getTotalCommentCount()})
                 </h2>
+                {!isConnected && (
+                  <div className="flex items-center space-x-1 text-red-500">
+                    <WifiOff className="w-4 h-4" />
+                    <span className="text-xs">Offline</span>
+                  </div>
+                )}
+                {queueStatus.queueLength > 0 && (
+                  <div className="flex items-center space-x-1 text-orange-500">
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                    <span className="text-xs">Processing ({queueStatus.queueLength})</span>
+                  </div>
+                )}
               </div>
-              <button
-                onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={fetchComments}
+                  disabled={fetchingComments}
+                  className={`p-2 rounded-lg transition-colors ${
+                    fetchingComments 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-500 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20'
+                  }`}
+                  title="Refresh comments"
+                >
+                  <RefreshCw className={`w-4 h-4 ${fetchingComments ? 'animate-spin' : ''}`} />
+                </button>
+                <button
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Comment Form */}
-            {user ? (
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-                <form onSubmit={handleSubmitComment} className="space-y-4">
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Write a comment..."
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    rows={3}
-                    required
-                  />
-                  <div className="flex justify-end">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <form onSubmit={handleSubmitComment} className="space-y-4">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder={user ? "Write a comment..." : "Write a comment as anonymous..."}
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  rows={3}
+                  required
+                />
+                <div className="flex justify-between items-center">
+                  {!user && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Commenting as anonymous user
+                    </p>
+                  )}
+                  <div className="flex justify-end flex-1">
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -460,15 +599,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogId, courseId, isOpe
                       <span>Post Comment</span>
                     </motion.button>
                   </div>
-                </form>
-              </div>
-            ) : (
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700 text-center flex-shrink-0">
-                <p className="text-gray-600 dark:text-gray-400">
-                  Please sign in to leave a comment.
-                </p>
-              </div>
-            )}
+                </div>
+              </form>
+            </div>
 
             {/* Comments List */}
             <div className="flex-1 overflow-y-auto">

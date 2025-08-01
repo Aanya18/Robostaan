@@ -76,9 +76,11 @@ class CloudinaryService {
         formData.append('tags', options.tags.join(','));
       }
 
-      if (options.transformation) {
-        formData.append('transformation', options.transformation);
-      }
+      // Note: 'transformation' parameter is not allowed with unsigned uploads
+      // Use 'manifest_transformation' instead or configure in upload preset
+      // if (options.transformation) {
+      //   formData.append('transformation', options.transformation);
+      // }
 
       if (options.public_id) {
         formData.append('public_id', options.public_id);
@@ -268,6 +270,64 @@ class CloudinaryService {
     }
 
     return { valid: true };
+  }
+
+  /**
+   * Search for images in Cloudinary using Admin API
+   */
+  async searchImages(options: {
+    folder?: string;
+    max_results?: number;
+    next_cursor?: string;
+    resource_type?: string;
+    type?: string;
+  } = {}): Promise<any> {
+    try {
+      // Try to use the backend endpoint for Cloudinary Admin API
+      const response = await fetch('/api/cloudinary/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(options)
+      });
+
+      if (response.ok) {
+        return await response.json();
+      }
+
+      // No images found - return empty result instead of mock data
+      console.log('No images found for folder:', options.folder);
+      console.log('⚠️ To see images, please upload them first using the admin panel');
+      
+      return {
+        resources: [],
+        next_cursor: null,
+        total_count: 0
+      };
+      
+    } catch (error) {
+      console.error('Error searching Cloudinary images:', error);
+      
+      // Return empty result on error
+      return {
+        resources: [],
+        next_cursor: null,
+        total_count: 0
+      };
+    }
+  }
+
+  /**
+   * Get images from a specific folder
+   */
+  async getFolderImages(folderName: string, options: {
+    max_results?: number;
+    next_cursor?: string;
+  } = {}): Promise<any> {
+    return this.searchImages({
+      folder: folderName,
+      max_results: options.max_results || 30,
+      next_cursor: options.next_cursor
+    });
   }
 
   /**

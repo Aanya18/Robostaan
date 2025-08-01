@@ -36,13 +36,13 @@ class SupabaseConnection {
   // Configuration
   private readonly config: ConnectionConfig = {
     maxRetries: 5,
-    retryDelay: 500, // Reduced from 1000ms
-    healthCheckInterval: 30_000, // 30s health check interval
-    connectionTimeout: 8_000, // Reduced from 10s to 8s
-    maxReconnectAttempts: 10, // Increased from 5 to 10
-    visibilityCheckInterval: 3_000, // Reduced from 5s to 3s
-    heartbeatInterval: 30_000, // 30s heartbeat interval
-    reconnectBackoffMultiplier: 1.5 // Exponential backoff
+    retryDelay: 1000, // Back to 1000ms for stability
+    healthCheckInterval: 30_000,
+    connectionTimeout: 10_000, // Back to 10s for reliability
+    maxReconnectAttempts: 5, // Back to 5 for faster failure detection
+    visibilityCheckInterval: 5_000,
+    heartbeatInterval: 30_000,
+    reconnectBackoffMultiplier: 1.5
   };
 
   // Environment variables
@@ -82,25 +82,36 @@ class SupabaseConnection {
 
   private initializeConnection(): void {
     try {
+    // Validate configuration
+    if (!this.supabaseUrl || !this.supabaseAnonKey) {
+      console.error('Supabase configuration missing. Please check your .env file for:');
+      console.error('   - VITE_SUPABASE_URL');
+      console.error('   - VITE_SUPABASE_ANON_KEY');
+      throw new Error('Supabase configuration missing');
+    }
+
+    // Create client with proper configuration
     this.client = createClient(this.supabaseUrl, this.supabaseAnonKey, {
       auth: {
-        persistSession: true,
         autoRefreshToken: true,
-          detectSessionInUrl: true,
-          storage: this.createSecureStorage(),
-          storageKey: 'robostaan-auth'
-      },
-      realtime: {
-          params: { 
-            eventsPerSecond: 10,
-            heartbeatIntervalMs: 30000, // 30 second heartbeat
-            reconnectAfterMs: (tries: number) => Math.min(tries * 500, 5000) // Faster reconnection
-          }
+        persistSession: true,
+        detectSessionInUrl: true,
+        storage: this.createSecureStorage(),
+        storageKey: 'robostaan-auth'
       },
       global: {
         headers: {
-            'x-application-name': 'robostaan',
-            'x-client-info': 'robostaan-web'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'x-application-name': 'robostaan',
+          'x-client-info': 'robostaan-web'
+        }
+      },
+      realtime: {
+        params: { 
+          eventsPerSecond: 10,
+          heartbeatIntervalMs: 30000, // 30 second heartbeat
+          reconnectAfterMs: (tries: number) => Math.min(tries * 500, 5000) // Faster reconnection
         }
       }
     });

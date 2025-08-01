@@ -8,7 +8,12 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "update-sitemap": "node scripts/updateSitemap.js"
+    "update-sitemap": "node scripts/updateSitemap.js",
+    "test-events": "node test-events-connection.js",
+    "clean-dummy": "node clean-dummy-data.js",
+    "truncate-events": "node run-truncate.js",
+    "test-upload": "node test-image-upload.js",
+    "test-simple-upload": "node test-simple-upload.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.3",

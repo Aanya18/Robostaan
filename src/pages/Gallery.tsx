@@ -1,219 +1,193 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Image, Award, Eye, Upload, X, Edit3, Star, Trash2 } from 'lucide-react';
-import { galleryService } from '../services/galleryService';
-import supabaseService, { GalleryImage } from '../lib/supabaseService';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Camera, Image, Award, Eye, Upload, X, Edit3, Star, Trash2, Folder, ArrowLeft, Calendar, MapPin } from 'lucide-react';
+import { eventService } from '../services/eventService';
+import { eventImageService } from '../services/eventImageService';
+import { Event } from '../lib/supabaseService';
 import { useApp } from '../context/AppContext';
 import SEOHead from '../components/SEO/SEOHead';
 import { siteConfig, urlHelpers } from '../config/siteConfig';
 
+interface GalleryImages {
+  [eventId: string]: {
+    images: any[];
+    loading: boolean;
+    hasMore: boolean;
+    nextCursor?: string;
+  };
+}
+
 const Gallery: React.FC = () => {
   const { isAdmin } = useApp();
-  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0 });
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [eventImages, setEventImages] = useState<GalleryImages>({});
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  
-  // Modal state for editing
-  const [editingImage, setEditingImage] = useState<GalleryImage | null>(null);
-  const [editForm, setEditForm] = useState({
-    title: '',
-    description: '',
-    tags: '',
-    isFeatured: false
-  });
+  const [viewMode, setViewMode] = useState<'folders' | 'gallery'>('folders');
 
-  // Fetch images from Supabase database
-  const fetchImages = async () => {
+  // Fetch events (folders) from Supabase
+  const fetchEvents = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Fetching images from database...');
+      console.log('🔍 Fetching events for gallery...');
       
-      // Test most direct connection possible
-      try {
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(
-          import.meta.env.VITE_SUPABASE_URL,
-          import.meta.env.VITE_SUPABASE_ANON_KEY
-        );
-        
-        console.log('🌐 Supabase config:', {
-          url: import.meta.env.VITE_SUPABASE_URL,
-          key: import.meta.env.VITE_SUPABASE_ANON_KEY?.substring(0, 20) + '...'
-        });
-        
-        const { data: directData, error: directError } = await supabase
-          .from('gallery_images')
-          .select('*')
-          .limit(10);
-        
-        console.log('🧪 Most direct test:', { 
-          directData, 
-          directError, 
-          count: directData?.length,
-          firstItem: directData?.[0]
-        });
-        
-        if (directData && directData.length > 0) {
-          // If we got data, use it!
-          setImages(directData);
-          console.log('✅ SUCCESS: Using direct data, found', directData.length, 'images');
-          return;
-        }
-        
-      } catch (directErr) {
-        console.log('🔬 Direct connection error:', directErr);
-      }
-      
-      // Fallback to service layers
-      const { data: testData, error: testError } = await supabaseService.getGalleryImages({ limit: 100 });
-      console.log('🧪 SupabaseService test:', { testData, testError, count: testData?.length });
-      
-      const { data, error } = await galleryService.getGalleryImages({ limit: 100 });
-      console.log('📊 GalleryService result:', { data, error, count: data?.length });
+      const { data, error } = await eventService.getEvents({ limit: 50 });
       
       if (error) {
-        setError(`Failed to fetch images: ${JSON.stringify(error)}`);
-        console.error('❌ Fetch images error:', error);
+        setError(`Failed to fetch events: ${JSON.stringify(error)}`);
+        console.error('❌ Fetch events error:', error);
       } else {
-        console.log('✅ Fetched images:', data);
-        setImages(data || []);
-        if (data && data.length > 0) {
-          console.log('📝 Sample image data:', data[0]);
-        } else {
-          console.log('📭 No images found in database');
-        }
+        console.log('✅ Fetched events:', data);
+        setEvents(data || []);
+        console.log(`📝 Found ${data?.length || 0} events/folders`);
       }
     } catch (err: any) {
-      setError(`Failed to fetch images: ${err.message}`);
-      console.error('❌ Fetch images error:', err);
+      setError(`Failed to fetch events: ${err.message}`);
+      console.error('❌ Fetch events error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchImages();
+    fetchEvents();
   }, []);
 
-  // Handle multiple image uploads with progress
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  // Handle URL parameters to auto-navigate to specific event
+  useEffect(() => {
+    const eventId = searchParams.get('event');
+    const eventFolder = searchParams.get('folder');
+    
+    if (eventId && events.length > 0) {
+      console.log(`🔗 Gallery: URL parameter detected - Event ID: ${eventId}, Folder: ${eventFolder}`);
+      
+      // Find the event by ID
+      const targetEvent = events.find(event => event.id === eventId);
+      
+      if (targetEvent) {
+        console.log(`✅ Gallery: Found target event: ${targetEvent.title}`);
+        console.log(`📁 Gallery: Cloudinary folder: ${targetEvent.cloudinary_folder}`);
+        
+        // Set the selected event and switch to gallery view
+        setSelectedEvent(targetEvent);
+        setViewMode('gallery');
+        
+        // Load images for this event
+        loadEventImages(targetEvent);
+        
+        // Update URL to clean version (optional)
+        // navigate('/gallery', { replace: true });
+      } else {
+        console.warn(`⚠️ Gallery: Event with ID ${eventId} not found in events list`);
+        console.log(`📝 Gallery: Available events:`, events.map(e => ({ id: e.id, title: e.title })));
+      }
+    }
+  }, [events, searchParams]);
 
-    setError(null);
-    setSuccess(null);
-    setUploading(true);
-    setUploadProgress({ completed: 0, total: files.length });
+  // Load images for a specific event folder
+  const loadEventImages = async (event: Event) => {
+    // If already loaded or loading, don't fetch again
+    if (eventImages[event.id]?.images.length > 0 || eventImages[event.id]?.loading) {
+      return;
+    }
+
+    setEventImages(prev => ({
+      ...prev,
+      [event.id]: {
+        images: [],
+        loading: true,
+        hasMore: true
+      }
+    }));
 
     try {
-      const fileArray = Array.from(files);
+      console.log(`🖼️ Gallery.tsx: Loading images for "${event.title}" (folder: ${event.cloudinary_folder})`);
       
-      const result = await galleryService.uploadMultipleImages(
-        fileArray,
-        {
-          tags: ['gallery', 'upload'],
-          displayOrder: images.length
-        },
-        (completed, total) => {
-          setUploadProgress({ completed, total });
+      // Use the new eventImageService
+      const { images, error } = await eventImageService.getEventImages(event.cloudinary_folder);
+
+      if (error) {
+        console.error(`❌ Gallery.tsx: Error loading images for ${event.title}:`, error);
+      } else {
+        console.log(`✅ Gallery.tsx: Loaded ${images.length} images for ${event.title}`);
+      }
+
+      setEventImages(prev => ({
+        ...prev,
+        [event.id]: {
+          images: images || [],
+          loading: false,
+          hasMore: false,
+          nextCursor: undefined
         }
-      );
-
-      if (result.success) {
-        setSuccess(`Successfully uploaded ${result.successCount} image(s)${result.errorCount > 0 ? `, ${result.errorCount} failed` : ''}`);
-        await fetchImages(); // Refresh the gallery
-      } else {
-        setError(`Upload failed: ${result.errorCount} error(s)`);
-      }
-
-    } catch (err: any) {
-      setError(`Upload failed: ${err.message}`);
-    } finally {
-      setUploading(false);
-      setUploadProgress({ completed: 0, total: 0 });
-      // Clear the file input
-      e.target.value = '';
+      }));
+    } catch (error) {
+      console.error(`💥 Gallery.tsx: Exception loading images for ${event.title}:`, error);
+      setEventImages(prev => ({
+        ...prev,
+        [event.id]: {
+          images: [],
+          loading: false,
+          hasMore: false
+        }
+      }));
     }
   };
 
-  // Handle image deletion
-  const handleDelete = async (image: GalleryImage) => {
-    if (!window.confirm('Are you sure you want to delete this image?')) return;
-
-    try {
-      const result = await galleryService.deleteImage(image.id);
-      
-      if (result.success) {
-        setSuccess('Image deleted successfully');
-        await fetchImages(); // Refresh the gallery
-      } else {
-        setError(result.error || 'Failed to delete image');
-      }
-    } catch (err: any) {
-      setError(`Delete failed: ${err.message}`);
-    }
+  // Handle folder click
+  const handleFolderClick = async (event: Event) => {
+    console.log(`📁 Gallery: Opening gallery for event: ${event.title} (ID: ${event.id})`);
+    console.log(`🗂️ Gallery: Cloudinary folder: ${event.cloudinary_folder}`);
+    
+    setSelectedEvent(event);
+    setViewMode('gallery');
+    
+    // Update URL with event parameters
+    navigate(`/gallery?event=${event.id}&folder=${event.cloudinary_folder}`, { replace: true });
+    
+    await loadEventImages(event);
   };
 
-  // Handle edit modal
-  const openEditModal = (image: GalleryImage) => {
-    setEditingImage(image);
-    setEditForm({
-      title: image.title || '',
-      description: image.description || '',
-      tags: image.tags.join(', '),
-      isFeatured: image.is_featured
+  // Handle back to folders
+  const handleBackToFolders = () => {
+    console.log('🔙 Gallery: Navigating back to folders view');
+    setSelectedEvent(null);
+    setViewMode('folders');
+    
+    // Clear URL parameters when going back to folders
+    navigate('/gallery', { replace: true });
+  };
+
+  // Format date helper
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
-  const closeEditModal = () => {
-    setEditingImage(null);
-    setEditForm({ title: '', description: '', tags: '', isFeatured: false });
-  };
-
-  // Handle image update
-  const handleUpdate = async () => {
-    if (!editingImage) return;
-
-    try {
-      const result = await galleryService.updateImage(editingImage.id, {
-        title: editForm.title || undefined,
-        description: editForm.description || undefined,
-        tags: editForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
-        isFeatured: editForm.isFeatured
-      });
-
-      if (result.success) {
-        setSuccess('Image updated successfully');
-        closeEditModal();
-        await fetchImages(); // Refresh the gallery
-      } else {
-        setError(result.error || 'Failed to update image');
-      }
-    } catch (err: any) {
-      setError(`Update failed: ${err.message}`);
-    }
-  };
-
-  // Clear messages after 5 seconds
+  // Clear error messages after 5 seconds
   useEffect(() => {
-    if (error || success) {
+    if (error) {
       const timer = setTimeout(() => {
         setError(null);
-        setSuccess(null);
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [error, success]);
+  }, [error]);
 
   return (
     <>
       <SEOHead
         title="Gallery | ROBOSTAAN"
-        description="Explore our gallery showcasing robotics projects, events, and achievements. Witness the journey of innovation and excellence."
-        keywords={["robotics gallery", "projects showcase", "technology images", "STEM gallery", "robotics achievements"]}
+        description="Explore our event-based gallery showcasing robotics projects, workshops, and achievements. Browse by event folders to see images."
+        keywords={["robotics gallery", "event photos", "projects showcase", "technology images", "STEM gallery", "robotics achievements"]}
         image={siteConfig.seo.defaultImage}
         url={urlHelpers.fullUrl('/gallery')}
         type="website"
@@ -227,74 +201,47 @@ const Gallery: React.FC = () => {
             transition={{ duration: 0.6 }}
             className="text-center mb-8 sm:mb-12"
           >
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Our Gallery
-            </h1>
-            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Explore our gallery of excellence where every image tells a story of innovation and achievement.
-            </p>
+            {viewMode === 'folders' ? (
+              <>
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                  Our Gallery
+                </h1>
+                <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                 Explore our gallery of excellence where every image tells a story of innovation and achievement.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-center mb-4">
+                  <button
+                    onClick={handleBackToFolders}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors mr-4"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Back to Events</span>
+                  </button>
+                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+                    {selectedEvent?.title}
+                  </h1>
+                </div>
+                <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                  Photo gallery from {selectedEvent?.title}
+                  {selectedEvent?.date && ` • ${formatDate(selectedEvent.date)}`}
+                </p>
+              </>
+            )}
           </motion.div>
 
-          {/* Status Messages */}
-          {(error || success) && (
+          {/* Error Messages */}
+          {error && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-6 mx-2 sm:mx-0"
             >
-              {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                  <p className="font-medium">{error}</p>
-                </div>
-              )}
-              {success && (
-                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                  <p className="font-medium">{success}</p>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {/* Admin Upload Section */}
-          {isAdmin && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-8 w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm"
-            >
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <Upload className="w-5 h-5 mr-2" />
-                Upload Images
-              </h3>
-              
-              <input 
-                type="file" 
-                accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" 
-                multiple 
-                onChange={handleUpload} 
-                disabled={uploading}
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
-              />
-              
-              {uploading && (
-                <div className="mt-4">
-                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    <span>Uploading images...</span>
-                    <span>{uploadProgress.completed}/{uploadProgress.total}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-orange-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${(uploadProgress.completed / uploadProgress.total) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
-              
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                Supports JPEG, PNG, GIF, WebP. Max 10MB per file.
-              </p>
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <p className="font-medium">{error}</p>
+              </div>
             </motion.div>
           )}
 
@@ -306,248 +253,164 @@ const Gallery: React.FC = () => {
               className="text-center py-12"
             >
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading images...</p>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">
+                {viewMode === 'folders' ? 'Loading events...' : 'Loading images...'}
+              </p>
             </motion.div>
           )}
 
-          {/* Empty State */}
-          {!loading && images.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-6 sm:p-8 text-center text-white mb-8 mx-2 sm:mx-0"
-            >
-              <div className="max-w-4xl mx-auto">
-                <Camera className="w-12 h-12 mx-auto mb-4 opacity-90" />
-                <h2 className="text-2xl font-bold mb-3">Amazing Gallery Coming Soon!</h2>
-                <p className="text-base mb-6 opacity-90">
-                  Stunning visuals of our robotics journey are being curated!
-                </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                  <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
-                    <div className="flex items-center mb-2">
-                      <Image className="w-5 h-5 mr-2" />
-                      <h3 className="font-semibold">Project Showcases</h3>
-                    </div>
-                    <p className="text-sm opacity-90">Visual project documentation</p>
-                  </div>
-                  
-                  <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
-                    <div className="flex items-center mb-2">
-                      <Award className="w-5 h-5 mr-2" />
-                      <h3 className="font-semibold">Achievement Moments</h3>
-                    </div>
-                    <p className="text-sm opacity-90">Milestone celebrations</p>
-                  </div>
-                  
-                  <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
-                    <div className="flex items-center mb-2">
-                      <Eye className="w-5 h-5 mr-2" />
-                      <h3 className="font-semibold">Behind the Scenes</h3>
-                    </div>
-                    <p className="text-sm opacity-90">Creative process glimpses</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Gallery Grid */}
-          {!loading && images.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full"
-            >
-              {images.map((image, idx) => {
-                // Debug: Log each image data
-                console.log(`🖼️ Rendering image ${idx + 1}:`, {
-                  id: image.id,
-                  title: image.title,
-                  cloudinary_public_id: image.cloudinary_public_id,
-                  cloudinary_url: image.cloudinary_url,
-                  cloudinary_secure_url: image.cloudinary_secure_url
-                });
-                
-                return (
+          {/* Folders View */}
+          {viewMode === 'folders' && !loading && (
+            <>
+              {events.length === 0 ? (
                 <motion.div
-                  key={image.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: idx * 0.1 }}
-                  className="rounded-lg overflow-hidden shadow-sm bg-white dark:bg-gray-800 relative group hover:shadow-lg transition-shadow duration-300"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-6 sm:p-8 text-center text-white mb-8 mx-2 sm:mx-0"
                 >
-                  {/* Featured badge */}
-                  {image.is_featured && (
-                    <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center z-10">
-                      <Star className="w-3 h-3 mr-1" />
-                      Featured
+                  <div className="max-w-4xl mx-auto">
+                    <Folder className="w-12 h-12 mx-auto mb-4 opacity-90" />
+                    <h2 className="text-2xl font-bold mb-3">No Events Found!</h2>
+                    <p className="text-base mb-6 opacity-90">
+                      Event galleries will appear here once events are created by admins.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                      <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                        <div className="flex items-center mb-2">
+                          <Image className="w-5 h-5 mr-2" />
+                          <h3 className="font-semibold">Event Photos</h3>
+                        </div>
+                        <p className="text-sm opacity-90">Photos organized by events</p>
+                      </div>
+                      
+                      <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                        <div className="flex items-center mb-2">
+                          <Award className="w-5 h-5 mr-2" />
+                          <h3 className="font-semibold">Achievement Moments</h3>
+                        </div>
+                        <p className="text-sm opacity-90">Milestone celebrations</p>
+                      </div>
+                      
+                      <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                        <div className="flex items-center mb-2">
+                          <Eye className="w-5 h-5 mr-2" />
+                          <h3 className="font-semibold">Behind the Scenes</h3>
+                        </div>
+                        <p className="text-sm opacity-90">Creative process glimpses</p>
+                      </div>
                     </div>
-                  )}
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+                >
+                  {events.map((event, idx) => (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.4, delay: idx * 0.1 }}
+                      onClick={() => handleFolderClick(event)}
+                      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group"
+                    >
+                      {/* Event Cover Image */}
+                      <div className="relative">
+                        {event.image_url ? (
+                          <img
+                            src={event.image_url}
+                            alt={event.title}
+                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-48 bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                            <Folder className="w-16 h-16 text-white opacity-80" />
+                          </div>
+                        )}
+                      </div>
 
-                  {/* Image */}
-                  <div className="w-full h-64 overflow-hidden">
-                    {image.cloudinary_public_id ? (
-                      <img 
-                        src={galleryService.generateTransformationUrl(image.cloudinary_public_id, {
-                          width: 400,
-                          height: 400,
-                          crop: 'fill',
-                          gravity: 'center'
-                        })} 
-                        alt={image.title || 'Gallery image'}
-                        className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
-                        loading="lazy"
-                        onError={(e) => {
-                          console.log('Image load error for:', image.cloudinary_public_id);
-                          e.currentTarget.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
-                        }}
-                      />
-                    ) : image.cloudinary_url ? (
-                      <img 
-                        src={image.cloudinary_url} 
-                        alt={image.title || 'Gallery image'}
-                        className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
-                        loading="lazy"
-                        onError={(e) => {
-                          console.log('Image load error for URL:', image.cloudinary_url);
-                          e.currentTarget.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                        <div className="text-center">
-                          <Image className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500">Missing Image URL</p>
-                          <p className="text-xs text-gray-400">ID: {image.id}</p>
+                      {/* Simple Event Info */}
+                      <div className="p-6 text-center">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors mb-3">
+                          {event.title}
+                        </h3>
+                        
+                        <div className="flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+                          <Folder className="w-4 h-4 mr-2" />
+                          <span>Click to view gallery</span>
                         </div>
                       </div>
-                    )}
-                  </div>
-                  
-                  {/* Admin Controls */}
-                  {isAdmin && (
-                    <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600 transition-colors"
-                        title="Edit"
-                        onClick={() => openEditModal(image)}
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        className="bg-red-500 text-white rounded p-2 hover:bg-red-600 transition-colors"
-                        title="Delete"
-                        onClick={() => handleDelete(image)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-
-
+                    </motion.div>
+                  ))}
                 </motion.div>
-                );
-              })}
-            </motion.div>
+              )}
+            </>
           )}
 
-          {/* Edit Modal */}
-          {editingImage && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
-              >
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      Edit Image
-                    </h2>
-                    <button
-                      onClick={closeEditModal}
-                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                    >
-                      <X className="w-6 h-6" />
-                    </button>
+          {/* Gallery View */}
+          {viewMode === 'gallery' && selectedEvent && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              {eventImages[selectedEvent.id]?.loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading gallery images...</p>
                   </div>
-
-                  <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        value={editForm.title}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder="Enter image title"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Description
-                      </label>
-                      <textarea
-                        value={editForm.description}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder="Enter image description"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Tags (comma-separated)
-                      </label>
-                      <input
-                        type="text"
-                        value={editForm.tags}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, tags: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder="tag1, tag2, tag3"
-                      />
-                    </div>
-
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="featured"
-                        checked={editForm.isFeatured}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, isFeatured: e.target.checked }))}
-                        className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="featured" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-                        Featured image
-                      </label>
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                      <button
-                        type="submit"
-                        className="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors font-medium"
-                      >
-                        Update
-                      </button>
-                      <button
-                        type="button"
-                        onClick={closeEditModal}
-                        className="flex-1 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors font-medium"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
                 </div>
-              </motion.div>
-            </div>
+              ) : eventImages[selectedEvent.id]?.images.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <Image className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium mb-2">
+                    No images found in this event gallery
+                  </p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
+                    Folder: <code className="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-xs">{selectedEvent.cloudinary_folder}</code>
+                  </p>
+                  {isAdmin && (
+                    <div className="inline-flex items-center px-4 py-2 bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                      <Upload className="w-4 h-4 text-orange-600 dark:text-orange-400 mr-2" />
+                      <span className="text-sm text-orange-700 dark:text-orange-300">
+                        Use Admin Panel → Events → Manage Images to upload photos for this event
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {eventImages[selectedEvent.id]?.images.map((image: any, idx: number) => (
+                    <motion.div
+                      key={image.public_id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.4, delay: idx * 0.05 }}
+                      className="aspect-square rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 group cursor-pointer hover:shadow-xl transition-all duration-300"
+                    >
+                      <img
+                        src={image.secure_url}
+                        alt={`${selectedEvent.title} - Photo ${idx + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        loading="lazy"
+                        onError={(e) => {
+                          console.log('Image load error for:', image.public_id);
+                          e.currentTarget.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
+                        }}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
           )}
         </div>
       </div>

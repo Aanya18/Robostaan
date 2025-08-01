@@ -304,6 +304,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Admin access only for users with admin role
   const isAdmin = profile?.role === 'admin';
   const isInstructor = profile?.role === 'instructor' || profile?.role === 'admin';
 

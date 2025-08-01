@@ -1,6 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabase, getSupabaseConnection } from './supabaseConnection';
-import { getConnectionPool } from './supabaseConnectionPool';
 
 // Types for better type safety
 export interface Blog {
@@ -101,10 +100,25 @@ export interface GalleryImage {
   display_order: number;
 }
 
+export interface Event {
+  id: string;
+  title: string;
+  description?: string;
+  cloudinary_folder: string;
+  date?: string;
+  location?: string;
+  event_type?: string;
+  image_url?: string;
+  tags: string[];
+  is_featured: boolean;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Service class for serverless-optimized data access with connection pooling
 class SupabaseService {
   private readonly connection = getSupabaseConnection();
-  private readonly connectionPool = getConnectionPool();
 
   // ========== BLOG OPERATIONS ==========
 
@@ -116,7 +130,7 @@ class SupabaseService {
     search?: string;
   } = {}): Promise<{ data: Blog[]; error: any }> {
     // Use connection pool for high-traffic operations
-    return this.connectionPool.executeWithConnection(async (client: SupabaseClient) => {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
       let query = client.from('blogs').select('*');
 
       if (options.featured !== undefined) {
@@ -195,7 +209,7 @@ class SupabaseService {
     search?: string;
   } = {}): Promise<{ data: Course[]; error: any }> {
     // Use connection pool for high-traffic operations
-    return this.connectionPool.executeWithConnection(async (client: SupabaseClient) => {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
       let query = client.from('courses').select('*');
 
       if (options.featured !== undefined) {
@@ -457,7 +471,7 @@ class SupabaseService {
     viewerUserAgent?: string;
   } = {}): Promise<{ data: BlogView | null; error: any }> {
     // Use connection pool for high-frequency operations like view tracking
-    return this.connectionPool.executeWithConnection(async (client: SupabaseClient) => {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
       return await client
         .from('blog_views')
         .insert({
@@ -645,24 +659,16 @@ class SupabaseService {
     return this.connection.getHealthStatus();
   }
 
-  // ========== CONNECTION POOL OPERATIONS ==========
+  // ========== CONNECTION OPERATIONS ==========
 
-  async executeWithPool<T>(
+  async executeWithConnection<T>(
     operation: (client: SupabaseClient) => Promise<T>
   ): Promise<T> {
-    return this.connectionPool.executeWithConnection(operation);
-  }
-
-  async getPoolStatus() {
-    return this.connectionPool.getPoolStatus();
+    return this.connection.executeWithRetry(operation);
   }
 
   async cleanup(): Promise<void> {
     this.connection.cleanup();
-  }
-
-  async shutdownPool(): Promise<void> {
-    return this.connectionPool.shutdown();
   }
   // ========== GALLERY IMAGE OPERATIONS ==========
 
@@ -674,7 +680,7 @@ class SupabaseService {
     search?: string;
   } = {}): Promise<{ data: GalleryImage[]; error: any }> {
     // Use connection pool for high-traffic operations
-    return this.connectionPool.executeWithConnection(async (client: SupabaseClient) => {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
       console.log('🔍 SupabaseService: Starting gallery images query...');
       
       let query = client.from('gallery_images').select('*');
@@ -779,6 +785,156 @@ class SupabaseService {
       return { error: errors.length > 0 ? errors : null };
     });
   }
+
+  // ========== EVENT OPERATIONS ==========
+
+  async getEvents(options: {
+    limit?: number;
+    offset?: number;
+    featured?: boolean;
+    tags?: string[];
+    search?: string;
+  } = {}): Promise<{ data: Event[]; error: any }> {
+    console.log('🔄 SupabaseService.getEvents called with options:', options);
+    
+    // Use direct connection instead of connection pool for debugging
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      console.log('🔗 SupabaseService.getEvents got client connection');
+      
+      let query = client.from('events').select('*');
+
+      if (options.featured !== undefined) {
+        query = query.eq('is_featured', options.featured);
+        console.log('🔍 Added featured filter:', options.featured);
+      }
+
+      if (options.tags && options.tags.length > 0) {
+        query = query.overlaps('tags', options.tags);
+        console.log('🔍 Added tags filter:', options.tags);
+      }
+
+      if (options.search) {
+        query = query.or(`title.ilike.%${options.search}%,description.ilike.%${options.search}%`);
+        console.log('🔍 Added search filter:', options.search);
+      }
+
+      if (options.limit) {
+        query = query.limit(options.limit);
+        console.log('🔍 Added limit:', options.limit);
+      }
+
+      if (options.offset) {
+        query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
+        console.log('🔍 Added offset range:', options.offset);
+      }
+
+      query = query.order('created_at', { ascending: false });
+      console.log('🔍 Added ordering by date and created_at');
+      
+      console.log('🚀 SupabaseService.getEvents executing query...');
+      const { data, error } = await query;
+      
+      console.log('📊 SupabaseService.getEvents raw result:', { data, error });
+      console.log('📊 Data length:', data?.length);
+      console.log('📊 First item:', data?.[0]);
+      
+      return { data: data ?? [], error };
+    });
+  }
+
+  async getEventById(id: string): Promise<{ data: Event | null; error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      return await client
+        .from('events')
+        .select('*')
+        .eq('id', id)
+        .single();
+    });
+  }
+
+  async getEventByFolder(cloudinaryFolder: string): Promise<{ data: Event | null; error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      return await client
+        .from('events')
+        .select('*')
+        .eq('cloudinary_folder', cloudinaryFolder)
+        .single();
+    });
+  }
+
+  async createEvent(event: Omit<Event, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: Event | null; error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      return await client
+        .from('events')
+        .insert(event)
+        .select()
+        .single();
+    });
+  }
+
+  async updateEvent(id: string, updates: Partial<Event>): Promise<{ data: Event | null; error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      return await client
+        .from('events')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+    });
+  }
+
+  async deleteEvent(id: string): Promise<{ error: any }> {
+    console.log('🗑️ SupabaseService.deleteEvent called with ID:', id);
+    
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      console.log('🔗 SupabaseService.deleteEvent got client connection');
+      
+      const result = await client
+        .from('events')
+        .delete()
+        .eq('id', id);
+      
+      console.log('📊 SupabaseService.deleteEvent result:', result);
+      
+      return result;
+    });
+  }
+
+  async getFeaturedEvents(limit: number = 3): Promise<{ data: Event[]; error: any }> {
+    console.log('🔄 SupabaseService.getFeaturedEvents called with limit:', limit);
+    
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      console.log('🔗 SupabaseService.getFeaturedEvents got client connection');
+      
+      const { data, error } = await client
+        .from('events')
+        .select('*')
+        .eq('is_featured', true)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      
+      console.log('📊 SupabaseService.getFeaturedEvents result:', { data, error });
+      console.log('📊 Featured events count:', data?.length);
+      
+      return { data: data ?? [], error };
+    });
+  }
+
+  async getEventFolders(): Promise<{ data: string[]; error: any }> {
+    return this.connection.executeWithRetry(async (client: SupabaseClient) => {
+      const { data, error } = await client
+        .from('events')
+        .select('cloudinary_folder')
+        .order('created_at', { ascending: false });
+      
+      if (error) return { data: [], error };
+      
+      return { 
+        data: data?.map(event => event.cloudinary_folder) ?? [], 
+        error: null 
+      };
+    });
+  }
 }
 
 // Create singleton instance
@@ -826,5 +982,13 @@ export const {
   cleanup,
   executeWithPool,
   getPoolStatus,
-  shutdownPool
+  shutdownPool,
+  getEvents,
+  getFeaturedEvents,
+  getEventById,
+  getEventByFolder,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  getEventFolders
 } = supabaseService; 

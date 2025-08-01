@@ -27,6 +27,7 @@ import { getSupabaseConnection } from './lib/supabaseConnection';
 import GoogleAnalytics from './components/Analytics/GoogleAnalytics';
 import Gallery from './pages/Gallery';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
 import Partnership from './pages/Partnership';
 
 function useSupabasePing() {
@@ -69,6 +70,7 @@ function App() {
                 <Route path="contact" element={<Contact />} />
                 <Route path="gallery" element={<Gallery />} />
                 <Route path="events" element={<Events />} />
+                <Route path="events/:id" element={<EventDetail />} />
                 <Route path="partnership" element={<Partnership />} />
                 <Route path="my-blogs" element={<MyBlogs />} />
                 <Route path="my-courses" element={<MyCourses />} />

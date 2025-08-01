@@ -196,6 +196,8 @@ class RequestQueue {
   private async processCommentRequest(request: QueuedRequest): Promise<void> {
     const { content, userId, blogId, courseId } = request.data;
     
+    console.log('🔄 Processing comment request:', { content, userId, blogId, courseId });
+    
     await this.connection.executeWithRetry(async (client) => {
       const commentData = {
         content,
@@ -203,17 +205,27 @@ class RequestQueue {
         ...(blogId ? { blog_id: blogId } : { course_id: courseId })
       };
 
-      const { error } = await client
+      console.log('📝 Inserting comment data:', commentData);
+
+      const { data, error } = await client
         .from('comments')
-        .insert([commentData]);
+        .insert([commentData])
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Comment insert error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Comment inserted successfully:', data);
     });
   }
 
   // Process reply request
   private async processReplyRequest(request: QueuedRequest): Promise<void> {
     const { content, userId, parentId, blogId, courseId } = request.data;
+    
+    console.log('🔄 Processing reply request:', { content, userId, parentId, blogId, courseId });
     
     await this.connection.executeWithRetry(async (client) => {
       const replyData = {
@@ -223,11 +235,19 @@ class RequestQueue {
         ...(blogId ? { blog_id: blogId } : { course_id: courseId })
       };
 
-      const { error } = await client
+      console.log('📝 Inserting reply data:', replyData);
+
+      const { data, error } = await client
         .from('comments')
-        .insert([replyData]);
+        .insert([replyData])
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Reply insert error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Reply inserted successfully:', data);
     });
   }
 

@@ -9,9 +9,10 @@ interface BlogInteractionsProps {
   blogId: string;
   blogSlug?: string;
   onCommentClick: () => void;
+  refreshTrigger?: number; // Add refresh trigger prop
 }
 
-const BlogInteractions: React.FC<BlogInteractionsProps> = ({ blogId, blogSlug, onCommentClick }) => {
+const BlogInteractions: React.FC<BlogInteractionsProps> = ({ blogId, blogSlug, onCommentClick, refreshTrigger }) => {
   const { user } = useAuth();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -29,11 +30,23 @@ const BlogInteractions: React.FC<BlogInteractionsProps> = ({ blogId, blogSlug, o
     []
   );
 
+  // Immediate fetch for urgent updates (like after comment deletion)
+  const immediateFetch = useCallback(async () => {
+    console.log('⚡ BlogInteractions: Immediate fetch triggered');
+    await fetchInteractionData();
+  }, []);
+
   useEffect(() => {
     if (blogId) {
-      fetchInteractionData();
+      console.log('🔄 BlogInteractions: Fetching data due to dependency change', { blogId, refreshTrigger });
+      // Use immediate fetch when refreshTrigger changes to get latest data quickly
+      if (refreshTrigger > 0) {
+        immediateFetch();
+      } else {
+        fetchInteractionData();
+      }
     }
-  }, [blogId, user]);
+  }, [blogId, user, refreshTrigger, immediateFetch]); // Add refreshTrigger to dependencies
 
   // Debounce function
   function debounce(func: Function, wait: number) {
@@ -61,13 +74,29 @@ const BlogInteractions: React.FC<BlogInteractionsProps> = ({ blogId, blogSlug, o
             .select('*', { count: 'exact', head: true })
             .eq('blog_id', blogId),
           
-          // Check if user liked this blog (only if user is logged in)
-          user ? client
-            .from('blog_likes')
-            .select('id')
-            .eq('blog_id', blogId)
-            .eq('user_id', user.id)
-            .maybeSingle() : Promise.resolve({ data: null, error: null }),
+          // Check if user/anonymous liked this blog
+          (() => {
+            if (user) {
+              return client
+                .from('blog_likes')
+                .select('id')
+                .eq('blog_id', blogId)
+                .eq('user_id', user.id)
+                .maybeSingle();
+            } else {
+              // Check for anonymous user like
+              const sessionId = localStorage.getItem('robostaan_blog_session_id');
+              if (sessionId) {
+                return client
+                  .from('blog_likes')
+                  .select('id')
+                  .eq('blog_id', blogId)
+                  .eq('user_id', `anonymous_${sessionId}`)
+                  .maybeSingle();
+              }
+              return Promise.resolve({ data: null, error: null });
+            }
+          })(),
           
           // Fetch comment count
           client
@@ -85,6 +114,12 @@ const BlogInteractions: React.FC<BlogInteractionsProps> = ({ blogId, blogSlug, o
       setLikeCount(likesResult.count || 0);
       setLiked(!!userLikeResult.data);
       setCommentCount(commentsResult.count || 0);
+      
+      console.log('📊 BlogInteractions: Updated counts', {
+        likes: likesResult.count || 0,
+        comments: commentsResult.count || 0,
+        userLiked: !!userLikeResult.data
+      });
 
     } catch (error) {
       console.error('Error fetching interaction data:', error);
@@ -93,7 +128,15 @@ const BlogInteractions: React.FC<BlogInteractionsProps> = ({ blogId, blogSlug, o
   };
 
   const handleLike = async () => {
-    if (!user || loading) return;
+    if (loading) return;
+
+    // Generate anonymous user ID if not logged in
+    const userId = user?.id || `anonymous_${localStorage.getItem('robostaan_blog_session_id') || crypto.randomUUID()}`;
+    
+    // Store anonymous session ID for consistency
+    if (!user && !localStorage.getItem('robostaan_blog_session_id')) {
+      localStorage.setItem('robostaan_blog_session_id', userId.replace('anonymous_', ''));
+    }
 
     // Optimistic update for better UX
     const previousLiked = liked;
@@ -108,10 +151,10 @@ const BlogInteractions: React.FC<BlogInteractionsProps> = ({ blogId, blogSlug, o
       
       if (previousLiked) {
         // Unlike
-        await queueUnlike(blogId, user.id);
+        await queueUnlike(blogId, userId);
       } else {
         // Like
-        await queueLike(blogId, user.id);
+        await queueLike(blogId, userId);
       }
 
       setOptimisticLike(null); // Clear optimistic state
@@ -157,6 +200,7 @@ const BlogInteractions: React.FC<BlogInteractionsProps> = ({ blogId, blogSlug, o
   useEffect(() => {
     const interval = setInterval(() => {
       if (blogId && !loading) {
+        console.log('⏱️ BlogInteractions: Periodic refresh');
         debouncedFetch();
       }
     }, 30000); // Refresh every 30 seconds
@@ -185,12 +229,12 @@ const BlogInteractions: React.FC<BlogInteractionsProps> = ({ blogId, blogSlug, o
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleLike}
-          disabled={!user || loading}
+          disabled={loading}
           className={`flex items-center space-x-1 px-3 py-1 rounded-full transition-colors ${
             liked || optimisticLike
               ? 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400'
               : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-          } ${!user ? 'opacity-50 cursor-not-allowed' : ''} ${loading ? 'opacity-75' : ''}`}
+          } ${loading ? 'opacity-75' : ''}`}
         >
           <Heart className={`w-4 h-4 ${(liked || optimisticLike) ? 'fill-current' : ''}`} />
           <span className="text-sm">{likeCount}</span>

@@ -20,13 +20,16 @@ import {
   Clock,
   Zap,
   Target,
-  Award
+  Award,
+  Plus,
+  Trash2,
+  Edit3,
+  X
 } from 'lucide-react';
 import { getSupabaseConnection } from '../lib/supabaseConnection';
 import { useAuth } from '../components/Auth/AuthProvider';
 import { Navigate } from 'react-router-dom';
-import ConnectionStatus from '../components/Layout/ConnectionStatus';
-import ConnectionPoolStatus from '../components/Layout/ConnectionPoolStatus';
+
 
 interface AnalyticsData {
   totalUsers: number;
@@ -67,6 +70,9 @@ const AdminPanel: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('7d');
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  
   const connection = getSupabaseConnection();
 
   useEffect(() => {
@@ -282,6 +288,16 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+
+
+
+
+
+
+
+
+
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
@@ -378,11 +394,7 @@ const AdminPanel: React.FC = () => {
             </div>
             
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                {/* Connection Status Cards */}
-                {/* <div className="flex flex-col space-y-2">
-                  <ConnectionStatus showDetails={true} className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 p-3 rounded-xl border border-blue-200 dark:border-blue-700" />
-                  <ConnectionPoolStatus showDetails={true} className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 p-3 rounded-xl border border-green-200 dark:border-green-700" />
-                </div> */}
+
                 
                 {/* Controls */}
                 <div className="flex items-center space-x-3">
@@ -411,8 +423,32 @@ const AdminPanel: React.FC = () => {
           </div>
         </motion.div>
 
+        {/* Tab Navigation */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="mb-8"
+        >
+          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === 'dashboard'
+                  ? 'bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Dashboard
+            </button>
+
+
+          </div>
+        </motion.div>
+
         {/* Loading State */}
-        {loading && (
+        {loading && activeTab === 'dashboard' && (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
@@ -421,8 +457,11 @@ const AdminPanel: React.FC = () => {
           </div>
         )}
 
-        {/* Enhanced Stats Cards */}
-        {!loading && (
+        {/* Dashboard Content */}
+        {activeTab === 'dashboard' && (
+          <>
+            {/* Enhanced Stats Cards */}
+            {!loading && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -690,6 +729,482 @@ const AdminPanel: React.FC = () => {
               </div>
             </motion.div>
         )}
+          </>
+        )}
+
+        {/* Events Management Content */}
+        {activeTab === 'events' && (
+          <>
+            {/* Event Messages */}
+            {eventMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6"
+              >
+                <div className={`p-4 rounded-xl border ${
+                  eventMessage.type === 'success' 
+                    ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'
+                    : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-700 dark:text-red-300'
+                }`}>
+                  {eventMessage.text}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Events Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex items-center justify-between mb-6"
+            >
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Event Management
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Create and manage events with their Cloudinary image folders
+                </p>
+              </div>
+              <button
+                onClick={() => openEventModal()}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:shadow-lg transition-all duration-200"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Event</span>
+              </button>
+            </motion.div>
+
+            {/* Events Loading */}
+            {eventsLoading && (
+              <div className="flex items-center justify-center py-20">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                  <p className="text-gray-600 dark:text-gray-400">Loading events...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Events Grid */}
+            {!eventsLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {events.length === 0 ? (
+                  <div className="col-span-full text-center py-20">
+                    <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                      <Calendar className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">
+                      No events created yet
+                    </p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                      Create your first event to get started
+                    </p>
+                  </div>
+                ) : (
+                  events.map((event, index) => (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.1 * index }}
+                      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300"
+                    >
+                      {event.image_url && (
+                        <img
+                          src={event.image_url}
+                          alt={event.title}
+                          className="w-full h-48 object-cover"
+                        />
+                      )}
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {event.title}
+                          </h3>
+                          {event.is_featured && (
+                            <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-medium rounded-full">
+                              Featured
+                            </span>
+                          )}
+                        </div>
+                        
+                        {event.description && (
+                          <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                            {event.description}
+                          </p>
+                        )}
+
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <Folder className="w-4 h-4 mr-2" />
+                            <span className="font-mono">{event.cloudinary_folder}</span>
+                          </div>
+                          
+                          {event.date && (
+                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                              <Calendar className="w-4 h-4 mr-2" />
+                              <span>{new Date(event.date).toLocaleDateString()}</span>
+                            </div>
+                          )}
+                          
+                          {event.location && (
+                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                              <MapPin className="w-4 h-4 mr-2" />
+                              <span>{event.location}</span>
+                            </div>
+                          )}
+                          
+                          {event.event_type && (
+                            <div className="flex items-center text-sm">
+                              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full capitalize">
+                                {event.event_type}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {event.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-4">
+                            {event.tags.slice(0, 3).map((tag, tagIndex) => (
+                              <span
+                                key={tagIndex}
+                                className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                            {event.tags.length > 3 && (
+                              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
+                                +{event.tags.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatDate(event.created_at)}
+                          </span>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => openImageUploader(event)}
+                              className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                              title="Upload images"
+                            >
+                              <Image className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => openEventModal(event)}
+                              className="p-2 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                              title="Edit event"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteEvent(event.id)}
+                              className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                              title="Delete event"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </motion.div>
+            )}
+
+            {/* Event Modal */}
+            {showEventModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                >
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                        {editingEvent ? 'Edit Event' : 'Create New Event'}
+                      </h3>
+                      <button
+                        onClick={resetEventForm}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <X className="w-6 h-6" />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleEventSubmit} className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Event Title *
+                        </label>
+                        <input
+                          type="text"
+                          value={eventForm.title}
+                          onChange={(e) => {
+                            const newTitle = e.target.value;
+                            setEventForm(prev => ({ 
+                              ...prev, 
+                              title: newTitle,
+                              // Auto-generate folder name if it's empty or was auto-generated
+                              cloudinary_folder: !prev.cloudinary_folder || 
+                                               prev.cloudinary_folder === eventService.generateFolderName(prev.title)
+                                               ? eventService.generateFolderName(newTitle)
+                                               : prev.cloudinary_folder
+                            }));
+                          }}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="Enter event title"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Description
+                        </label>
+                        <textarea
+                          value={eventForm.description}
+                          onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="Event description (optional)"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Cloudinary Folder Name *
+                        </label>
+                        <div className="flex space-x-2">
+                          <input
+                            type="text"
+                            value={eventForm.cloudinary_folder}
+                            onChange={(e) => setEventForm(prev => ({ ...prev, cloudinary_folder: e.target.value }))}
+                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
+                            placeholder="cloudinary-folder-name"
+                            required
+                            pattern="^[a-z0-9-]+$"
+                            title="Only lowercase letters, numbers, and hyphens allowed"
+                          />
+                          <button
+                            type="button"
+                            onClick={generateFolderName}
+                            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                            title="Generate from title"
+                          >
+                            Auto
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          This will be the folder name in Cloudinary where event images are stored
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Event Date
+                          </label>
+                          <input
+                            type="date"
+                            value={eventForm.date}
+                            onChange={(e) => setEventForm(prev => ({ ...prev, date: e.target.value }))}
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Location
+                          </label>
+                          <input
+                            type="text"
+                            value={eventForm.location}
+                            onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            placeholder="Event location"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Event Type *
+                        </label>
+                        <select
+                          value={eventForm.event_type}
+                          onChange={(e) => setEventForm(prev => ({ ...prev, event_type: e.target.value }))}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required
+                        >
+                          <option value="">Select event type</option>
+                          <option value="meetup">Meetup</option>
+                          <option value="workshop">Workshop</option>
+                          <option value="webinar">Webinar</option>
+                          <option value="event">Event</option>
+                          <option value="competition">Competition</option>
+                          <option value="hackathon">Hackathon</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Cover Image
+                        </label>
+                        
+                        {/* Image Preview */}
+                        {eventForm.image_url && (
+                          <div className="mb-4">
+                            <img 
+                              src={eventForm.image_url} 
+                              alt="Cover preview" 
+                              className="w-full h-48 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-600"
+                              onError={(e) => {
+                                console.log('Image preview error');
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Upload Button */}
+                        <div className="flex flex-col space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <label className="flex-1">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handleCoverImageUpload(file);
+                                  }
+                                }}
+                              />
+                              <div className={`w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-center cursor-pointer hover:border-orange-500 transition-colors ${uploadingCoverImage ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                {uploadingCoverImage ? (
+                                  <div className="flex items-center justify-center space-x-2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Uploading...</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center space-x-2">
+                                    <Upload className="w-4 h-4 text-gray-500" />
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Click to upload image</span>
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          </div>
+                          
+                          <div className="text-center text-xs text-gray-500">or</div>
+                          
+                          {/* Manual URL Input */}
+                          <input
+                            type="url"
+                            value={eventForm.image_url}
+                            onChange={(e) => setEventForm(prev => ({ ...prev, image_url: e.target.value }))}
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            placeholder="https://example.com/image.jpg"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Tags
+                        </label>
+                        <input
+                          type="text"
+                          value={eventForm.tags}
+                          onChange={(e) => setEventForm(prev => ({ ...prev, tags: e.target.value }))}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="robotics, workshop, competition (comma-separated)"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={eventForm.is_featured}
+                            onChange={(e) => setEventForm(prev => ({ ...prev, is_featured: e.target.checked }))}
+                            className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                          />
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Featured Event
+                          </span>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                          type="button"
+                          onClick={resetEventForm}
+                          className="px-6 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:shadow-lg transition-all duration-200"
+                        >
+                          {editingEvent ? 'Update Event' : 'Create Event'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+
+            {/* Image Uploader Modal */}
+            {showImageUploader && selectedEventForImages && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                >
+                  <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Manage Images - {selectedEventForImages.title}
+                    </h2>
+                    <button
+                      onClick={closeImageUploader}
+                      className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  <div className="p-6">
+                    <EventImageUploader
+                      event={selectedEventForImages}
+                      onUploadComplete={handleImageUploadComplete}
+                      onCoverImageUpdate={handleCoverImageUpdate}
+                    />
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </>
+        )}
+
+
       </div>
     </div>
   );

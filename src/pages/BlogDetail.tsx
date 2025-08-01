@@ -34,6 +34,7 @@ const BlogDetail: React.FC = () => {
   const [blog, setBlog] = useState<Blog | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [viewRecorded, setViewRecorded] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger state
   const { publicViews, refetch: refetchViews } = usePublicBlogViews();
   const { user } = useAuth();
 
@@ -324,6 +325,7 @@ const BlogDetail: React.FC = () => {
               blogId={blog.id} 
               blogSlug={blog.slug}
               onCommentClick={() => setShowComments(true)}
+              refreshTrigger={refreshTrigger}
             />
           </motion.div>
         </article>
@@ -340,6 +342,7 @@ const BlogDetail: React.FC = () => {
             blogId={blog.id} 
             isOpen={showComments}
             onClose={() => setShowComments(false)}
+            onUpdate={() => setRefreshTrigger(prev => prev + 1)}
           />
         </motion.div>
       </div>
