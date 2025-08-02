@@ -602,7 +602,8 @@ const Events: React.FC = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: index * 0.1 }}
                       whileHover={{ y: -5 }}
-                      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 relative h-full flex flex-col"
+                      onClick={() => navigate(`/events/${event.id}`)}
+                      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 relative h-full flex flex-col cursor-pointer"
                     >
                       {/* Event Image */}
                       <div className="relative">
