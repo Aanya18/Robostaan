@@ -2,79 +2,157 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://robostaan.in/</loc>
-    <lastmod>2025-07-17</lastmod>
+    <lastmod>2025-08-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>1</priority>
   </url>
   <url>
     <loc>https://robostaan.in/blogs</loc>
-    <lastmod>2025-07-17</lastmod>
+    <lastmod>2025-08-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://robostaan.in/courses</loc>
-    <lastmod>2025-07-17</lastmod>
+    <lastmod>2025-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://robostaan.in/about</loc>
-    <lastmod>2025-07-17</lastmod>
+    <lastmod>2025-08-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://robostaan.in/contact</loc>
-    <lastmod>2025-07-17</lastmod>
+    <lastmod>2025-08-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://robostaan.in/blog/understanding-the-three-laws-of-robotics</loc>
-    <lastmod>2025-07-17</lastmod>
+    <loc>https://robostaan.in/blog/digital-vs-analog-control</loc>
+    <lastmod>2025-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://robostaan.in/blog/modern-approaches-to-handling-ethical-dilemmas-in-robotics</loc>
-    <lastmod>2025-07-17</lastmod>
+    <loc>https://robostaan.in/blog/role-of-mechanics-in-robotics</loc>
+    <lastmod>2025-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://robostaan.in/blog/human-robot-interaction</loc>
-    <lastmod>2025-07-17</lastmod>
+    <loc>https://robostaan.in/blog/the-role-of-electronics-in-robotics</loc>
+    <lastmod>2025-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://robostaan.in/blog/types-of-robotic-systems-application-view</loc>
-    <lastmod>2025-07-17</lastmod>
+    <loc>https://robostaan.in/blog/ai-artificial-intelligence</loc>
+    <lastmod>2025-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://robostaan.in/blog/what-is-robotics-</loc>
-    <lastmod>2025-07-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://robostaan.in/blog/robots-vs-machines</loc>
-    <lastmod>2025-07-16</lastmod>
+    <loc>https://robostaan.in/blog/mechatronics-in-robotics</loc>
+    <lastmod>2025-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://robostaan.in/blog/autonomous-vs-semi-autonomous-robots-what-s-the-difference-</loc>
-    <lastmod>2025-07-15</lastmod>
+    <lastmod>2025-08-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/sensors-in-robotics</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/types-of-power-sources-in-robotics</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/robotic-power-sources-the-life-giving-energy-of-robots</loc>
+    <lastmod>2025-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/different-types-of-sensors-in-robotics</loc>
+    <lastmod>2025-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/modern-approaches-to-handling-ethical-dilemmas-in-robotics</loc>
+    <lastmod>2025-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://robostaan.in/blog/ethical-dilemmas-in-robotics</loc>
-    <lastmod>2025-07-15</lastmod>
+    <lastmod>2025-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/understanding-the-three-laws-of-robotics</loc>
+    <lastmod>2025-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/what-is-robotics-</loc>
+    <lastmod>2025-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/programming-languages-for-robotics</loc>
+    <lastmod>2025-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/types-of-actuators-in-robotics</loc>
+    <lastmod>2025-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/actuators-in-robotics-the-muscles-that-move-the-machine</loc>
+    <lastmod>2025-07-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/building-blocks-of-a-robotic-system</loc>
+    <lastmod>2025-07-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/robots-vs-machines</loc>
+    <lastmod>2025-07-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/types-of-robotic-systems-application-view</loc>
+    <lastmod>2025-07-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://robostaan.in/blog/human-robot-interaction</loc>
+    <lastmod>2025-07-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

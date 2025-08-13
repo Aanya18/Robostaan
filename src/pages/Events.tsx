@@ -92,16 +92,16 @@ const Events: React.FC = () => {
     }
   }, [isAdmin]);
 
-  // Auto-save draft when form changes
-  useEffect(() => {
-    if (isAdmin && showEventModal && (eventForm.title.trim() || eventForm.description.trim())) {
-      const timeoutId = setTimeout(() => {
-        saveDraft();
-      }, 1000); // Save after 1 second of inactivity
+  // Auto-save draft when form changes (disabled to prevent confusion)
+  // useEffect(() => {
+  //   if (isAdmin && showEventModal && (eventForm.title.trim() || eventForm.description.trim())) {
+  //     const timeoutId = setTimeout(() => {
+  //       saveDraft();
+  //     }, 5000); // Save after 5 seconds of inactivity (increased from 1 second)
 
-      return () => clearTimeout(timeoutId);
-    }
-  }, [eventForm, showEventModal, isAdmin]);
+  //     return () => clearTimeout(timeoutId);
+  //   }
+  // }, [eventForm, showEventModal, isAdmin]);
 
   const fetchEvents = async () => {
     try {
@@ -322,7 +322,7 @@ const Events: React.FC = () => {
         const { success, error } = await eventService.updateEvent(editingEvent.id, eventData);
         if (success) {
           console.log('✅ Event updated successfully');
-          setEventMessage({ type: 'success', text: 'Event updated successfully!' });
+          setEventMessage({ type: 'success', text: '✅ Event updated successfully in database! It is now live on the website.' });
         } else {
           throw new Error(error || 'Failed to update event');
         }
@@ -330,7 +330,7 @@ const Events: React.FC = () => {
         const { success, error } = await eventService.createEvent(eventData);
         if (success) {
           console.log('✅ Event created successfully');
-          setEventMessage({ type: 'success', text: 'Event created successfully!' });
+          setEventMessage({ type: 'success', text: '✅ Event created successfully in database! It is now live on the website.' });
         } else {
           throw new Error(error || 'Failed to create event');
         }
@@ -773,6 +773,26 @@ const Events: React.FC = () => {
                 </div>
 
                 <form onSubmit={handleEventSubmit} className="space-y-6">
+                  {/* Important Notice */}
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <Shield className="w-5 h-5 text-blue-500 mt-0.5" />
+                      </div>
+                      <div className="ml-3">
+                        <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                          Important: Event Saving Process
+                        </h4>
+                        <div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                          <p>• Events are <strong>NOT automatically saved</strong> to the database</p>
+                          <p>• Click "Save Draft" to save your work locally (browser storage only)</p>
+                          <p>• Click "{editingEvent ? 'Update Event in Database' : 'Create Event in Database'}" to actually save the event</p>
+                          <p>• Only saved events will appear in the public events list</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Event Title *
@@ -879,7 +899,7 @@ const Events: React.FC = () => {
                       <option value="">Select event type</option>
                       {getEventTypeOptions().map(type => (
                         <option key={type} value={type} className="capitalize">
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                          {type ? type.charAt(0).toUpperCase() + type.slice(1) : ''}
                         </option>
                       ))}
                     </select>
@@ -1017,6 +1037,17 @@ const Events: React.FC = () => {
                   </div>
 
                   <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    {/* Manual Save Draft Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        saveDraft();
+                        setEventMessage({ type: 'success', text: '💾 Draft saved to browser storage only. Click "Create Event in Database" to make it live.' });
+                      }}
+                      className="px-4 py-2 border border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-700 transition-colors text-sm"
+                    >
+                      Save Draft
+                    </button>
                     <button
                       type="button"
                       onClick={() => resetEventForm(false)} // Don't clear draft on cancel
@@ -1026,9 +1057,9 @@ const Events: React.FC = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:shadow-lg transition-all duration-200"
+                      className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
                     >
-                      {editingEvent ? 'Update Event' : 'Create Event'}
+                      {editingEvent ? 'Update Event in Database' : 'Create Event in Database'}
                     </button>
                   </div>
                   

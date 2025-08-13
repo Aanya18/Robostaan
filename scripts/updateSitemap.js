@@ -19,18 +19,25 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+// Load environment variables (support both Vite-style and server-style)
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // preferred for server-side scripts
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseKey = supabaseServiceKey || supabaseAnonKey;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.log(supabaseUrl);
-  console.log(supabaseKey);
-  console.error('Error: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables are required');
+  console.error('Error: Missing Supabase credentials. Set one of the following:');
+  console.error('- SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (preferred for scripts), or');
+  console.error('- SUPABASE_URL and SUPABASE_ANON_KEY, or');
+  console.error('- VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+if (!supabaseServiceKey) {
+  console.warn('⚠️ Using anon key. If RLS blocks reads, set SUPABASE_SERVICE_ROLE_KEY for this script.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
 
 /**
  * Generate sitemap XML content
