@@ -93,7 +93,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const interval = setInterval(async () => {
       try {
         await connection.executeWithRetry(async (client) => {
-          await client.from('blogs').select('id').limit(1);
+          await client.from('courses').select('id').limit(1);
         });
       } catch (e) {
         // Ignore errors, this is just to keep the backend warm
@@ -151,8 +151,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setBlogs([]);
       setCourses([]);
       setLoading(false);
-      // If fetch takes longer than 10 seconds, reload the page
-      window.location.reload();
+      // Keep the app loaded and show empty state; avoid reload loops
+      // Tip: Check console for the exact Supabase error (RLS/policies, table missing, etc.)
     }
   };
 

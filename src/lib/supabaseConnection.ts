@@ -291,7 +291,7 @@ class SupabaseConnection {
     try {
       // Lightweight ping to keep connection alive
       const { error } = await this.client!
-        .from('blogs')
+        .from('courses')
         .select('id')
         .limit(1)
         .abortSignal(AbortSignal.timeout(3000)); // 3 second timeout for heartbeat
@@ -314,7 +314,7 @@ class SupabaseConnection {
       
       // Use a lightweight query for health check
       const { error } = await this.client!
-        .from('blogs')
+        .from('courses')
         .select('id')
         .limit(1)
         .abortSignal(AbortSignal.timeout(this.config.connectionTimeout));
