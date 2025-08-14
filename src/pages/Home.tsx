@@ -13,10 +13,7 @@ import { siteConfig, seoConfig } from '../config/siteConfig';
 const Home: React.FC = () => {
   const { blogs, courses, projects, refreshData } = useApp();
 
-  // Refresh data when component mounts
-  useEffect(() => {
-    refreshData();
-  }, []);
+  // Data is automatically loaded by AppContext, no need to refresh here
 
   const featuredBlogs = blogs.filter(blog => blog.featured).slice(0, 3);
   const featuredCourses = courses.filter(course => course.featured).slice(0, 3);

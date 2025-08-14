@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getSupabaseConnection } from '../lib/supabaseConnection';
-import type { Blog, Course } from '../lib/supabaseService';
+import type { Blog, Course, Event } from '../lib/supabaseService';
 import { useAuth } from '../components/Auth/AuthProvider';
 
-export type { Blog, Course };
+export type { Blog, Course, Event };
 
 interface AppContextType {
   blogs: Blog[];
   courses: Course[];
+  events: Event[];
   projects: any[];
   userBlogs: Blog[];
   userCourses: Course[];
@@ -20,6 +21,9 @@ interface AppContextType {
   addCourse: (course: Omit<Course, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   updateCourse: (id: string, course: Partial<Course>) => Promise<void>;
   deleteCourse: (id: string) => Promise<void>;
+  addEvent: (event: Omit<Event, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  updateEvent: (id: string, event: Partial<Event>) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
   addProject: (project: any) => Promise<void>;
   updateProject: (id: string, project: any) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
@@ -43,6 +47,7 @@ export const useApp = () => {
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [userBlogs, setUserBlogs] = useState<Blog[]>([]);
   const [userCourses, setUserCourses] = useState<Course[]>([]);
   const [darkMode, setDarkMode] = useState(false);
@@ -50,6 +55,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [dataCache, setDataCache] = useState<{
     blogs?: Blog[];
     courses?: Course[];
+    events?: Event[];
     projects?: any[];
     lastFetch?: number;
   }>({});
@@ -139,17 +145,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const fetchDataWithTimeout = async (forceRefresh = false) => {
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Data fetch timeout')), 30000)
+    // Increased timeout to 75 seconds for sequential loading (4 operations × 15 seconds each + buffer)
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Data fetch timeout')), 75000)
     );
     try {
+      console.log('⏱️ AppContext: Starting data fetch with 60s timeout...');
       await Promise.race([fetchData(forceRefresh), timeoutPromise]);
       setConnectionStatus('connected');
+      console.log('✅ AppContext: Data fetch completed successfully');
     } catch (error) {
       setConnectionStatus('disconnected');
-      console.error('Data fetch error or timeout:', error);
-      setBlogs([]);
-      setCourses([]);
+      console.error('💥 Data fetch error or timeout:', error);
+      // Don't clear existing data on timeout - keep what we have
+      // setBlogs([]);
+      // setCourses([]);
       setLoading(false);
       // Keep the app loaded and show empty state; avoid reload loops
       // Tip: Check console for the exact Supabase error (RLS/policies, table missing, etc.)
@@ -163,6 +173,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!forceRefresh && dataCache.lastFetch && (now - dataCache.lastFetch) < cacheExpiry) {
       if (dataCache.blogs) setBlogs(dataCache.blogs);
       if (dataCache.courses) setCourses(dataCache.courses);
+      if (dataCache.events) setEvents(dataCache.events);
       if (dataCache.projects) setProjects(dataCache.projects);
       setLoading(false);
       return;
@@ -170,50 +181,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     try {
       setLoading(true);
-      // Fetch blogs
+      console.log('🔄 AppContext: Starting sequential data fetch...');
+
+      // SEQUENTIAL LOADING: Fetch data one by one to prevent timeouts
       let blogsData = [];
+      let coursesData = [];
+      let projectsData = [];
+
+      // Step 1: Fetch blogs first
       try {
+        console.log('📚 AppContext: Fetching blogs...');
         const blogsResult = await connection.executeWithRetry(async (client) => {
           return await client.from('blogs').select('*').order('created_at', { ascending: false });
-        });
+        }, 2, 15000); // Reduced timeout to 15 seconds per operation
+
         blogsData = blogsResult?.data || [];
         const blogsError = blogsResult?.error;
         if (blogsError && !blogsError.message.includes('relation "blogs" does not exist')) {
-          console.error('Error fetching blogs:', blogsError);
+          console.error('❌ Error fetching blogs:', blogsError);
         } else {
+          console.log(`✅ Blogs loaded: ${blogsData.length} items`);
           setBlogs(blogsData);
         }
       } catch (error) {
-        console.error('Blogs fetch timeout or error:', error);
+        console.error('💥 Blogs fetch timeout or error:', error);
+        // Continue with other data even if blogs fail
       }
 
-      // Fetch courses
-      let coursesData = [];
+      // Step 2: Fetch courses second
       try {
+        console.log('🎓 AppContext: Fetching courses...');
         const coursesResult = await connection.executeWithRetry(async (client) => {
           return await client.from('courses').select('*').order('created_at', { ascending: false });
-        });
+        }, 2, 15000); // Reduced timeout to 15 seconds per operation
+
         coursesData = coursesResult?.data || [];
         const coursesError = coursesResult?.error;
         if (coursesError && !coursesError.message.includes('relation "courses" does not exist')) {
-          console.error('Error fetching courses:', coursesError);
+          console.error('❌ Error fetching courses:', coursesError);
         } else {
+          console.log(`✅ Courses loaded: ${coursesData.length} items`);
           setCourses(coursesData);
         }
       } catch (error) {
-        console.error('Courses fetch timeout or error:', error);
+        console.error('💥 Courses fetch timeout or error:', error);
+        // Continue with other data even if courses fail
       }
 
-      // Fetch projects
-      let projectsData = [];
+      // Step 3: Fetch projects last
       try {
+        console.log('🚀 AppContext: Fetching projects...');
         const projectsResult = await connection.executeWithRetry(async (client) => {
           return await client.from('projects').select('*').order('created_at', { ascending: false });
-        });
+        }, 2, 15000); // Reduced timeout to 15 seconds per operation
+
         projectsData = projectsResult?.data || [];
         const projectsError = projectsResult?.error;
         if (projectsError && !projectsError.message.includes('relation "projects" does not exist')) {
-          console.error('Error fetching projects:', projectsError);
+          console.error('❌ Error fetching projects:', projectsError);
         } else {
           const normalizedProjects = (projectsData || []).map((p: any) => ({
             ...p,
@@ -221,21 +246,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             demoUrl: p.demo_url,
             featured: !!p.featured
           }));
+          console.log(`✅ Projects loaded: ${normalizedProjects.length} items`);
           setProjects(normalizedProjects);
         }
       } catch (error) {
-        console.error('Projects fetch timeout or error:', error);
+        console.error('💥 Projects fetch timeout or error:', error);
+        // Continue even if projects fail
+      }
+
+      // Step 4: Fetch events last
+      let eventsData = [];
+      try {
+        console.log('📅 AppContext: Fetching events...');
+        const eventsResult = await connection.executeWithRetry(async (client) => {
+          return await client.from('events').select('*').order('created_at', { ascending: false });
+        }, 2, 15000); // Reduced timeout to 15 seconds per operation
+
+        eventsData = eventsResult?.data || [];
+        const eventsError = eventsResult?.error;
+        if (eventsError && !eventsError.message.includes('relation "events" does not exist')) {
+          console.error('❌ Error fetching events:', eventsError);
+        } else {
+          console.log(`✅ Events loaded: ${eventsData.length} items`);
+          setEvents(eventsData);
+        }
+      } catch (error) {
+        console.error('💥 Events fetch timeout or error:', error);
+        // Continue even if events fail
       }
 
       // Update cache only if we got some data
       setDataCache({
         blogs: blogsData,
         courses: coursesData,
+        events: eventsData,
         projects: projectsData,
         lastFetch: now
       });
+
+      console.log('🏁 AppContext: Sequential data fetch completed');
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('💥 Error in sequential data fetch:', error);
       // Don't clear data on error, keep existing
     } finally {
       setLoading(false);
@@ -559,6 +610,69 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const addEvent = async (event: Omit<Event, 'id' | 'created_at' | 'updated_at'>) => {
+    await ensureConnection();
+    try {
+      const { data, error } = await connection.executeWithRetry(async (client) => {
+        return await client
+          .from('events')
+          .insert([event])
+          .select()
+          .single();
+      });
+
+      if (error) throw error;
+
+      setEvents(prev => [data, ...prev]);
+      console.log('Event added successfully:', data);
+    } catch (error) {
+      console.error('Error adding event:', error);
+      throw error;
+    }
+  };
+
+  const updateEvent = async (id: string, event: Partial<Event>) => {
+    await ensureConnection();
+    try {
+      const { data, error } = await connection.executeWithRetry(async (client) => {
+        return await client
+          .from('events')
+          .update(event)
+          .eq('id', id)
+          .select()
+          .single();
+      });
+
+      if (error) throw error;
+
+      setEvents(prev => prev.map(e => e.id === id ? data : e));
+      console.log('Event updated successfully:', data);
+    } catch (error) {
+      console.error('Error updating event:', error);
+      throw error;
+    }
+  };
+
+  const deleteEvent = async (id: string) => {
+    await ensureConnection();
+    try {
+      const { error } = await connection.executeWithRetry(async (client) => {
+        return await client
+          .from('events')
+          .delete()
+          .eq('id', id);
+      });
+
+      if (error) throw error;
+
+      setEvents(prev => prev.filter(e => e.id !== id));
+      console.log('Event deleted successfully');
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      throw error;
+    }
+  };
+
   const addProject = async (project: any) => {
     await ensureConnection();
     try {
@@ -661,6 +775,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const value: AppContextType = {
     blogs,
     courses,
+    events,
     projects,
     userBlogs,
     userCourses,
@@ -673,6 +788,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addCourse,
     updateCourse,
     deleteCourse,
+    addEvent,
+    updateEvent,
+    deleteEvent,
     addProject,
     updateProject,
     deleteProject,

@@ -1,50 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Calendar, 
-  MapPin, 
-  Star, 
-  ArrowLeft, 
+import {
+  Calendar,
+  MapPin,
+  Star,
+  ArrowLeft,
   Tag,
   Award
 } from 'lucide-react';
 import SEOHead from '../components/SEO/SEOHead';
 import { siteConfig, urlHelpers } from '../config/siteConfig';
-import DirectEventService from '../services/directEventService';
+import { useApp } from '../context/AppContext';
 import { Event } from '../lib/supabaseService';
 
 const EventDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { events, loading: appLoading } = useApp();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      fetchEventDetail(id);
+    if (id && events.length > 0) {
+      findEvent(id);
+    } else if (id && !appLoading) {
+      // If events are loaded but event not found
+      setError('Event not found');
+      setLoading(false);
     }
-  }, [id]);
+  }, [id, events, appLoading]);
 
-  const fetchEventDetail = async (eventId: string) => {
+  const findEvent = (eventId: string) => {
     try {
       setLoading(true);
-      console.log(`🔍 EventDetail: Fetching event details for ID: ${eventId}`);
-      
-      // Get single event by ID
-      const { data, error } = await DirectEventService.getEventById(eventId);
-      
-      if (error) {
-        console.error('❌ EventDetail: Error fetching event:', error);
-        setError('Failed to load event details');
-        return;
-      }
+      console.log(`🔍 EventDetail: Looking for event with ID: ${eventId}`);
 
-      if (data) {
-        console.log('✅ EventDetail: Event loaded:', data);
-        setEvent(data);
+      // Find event in the events array from AppContext
+      const foundEvent = events.find(e => e.id === eventId);
+
+      if (foundEvent) {
+        console.log('✅ EventDetail: Event found:', foundEvent);
+        setEvent(foundEvent);
+        setError(null);
       } else {
+        console.log('❌ EventDetail: Event not found in events array');
         setError('Event not found');
       }
     } catch (err: any) {
@@ -83,7 +84,7 @@ const EventDetail: React.FC = () => {
     navigate('/events');
   };
 
-  if (loading) {
+  if (loading || appLoading) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -198,15 +199,18 @@ const EventDetail: React.FC = () => {
               </header>
 
               {/* Event Meta Information */}
-              <div className="flex flex-wrap gap-6 mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 {event.date && (
-                  <div className="flex items-center text-gray-600 dark:text-gray-300">
-                    <Calendar className="w-5 h-5 mr-3 text-orange-500 flex-shrink-0" />
+                  <div className="flex items-start text-gray-600 dark:text-gray-300">
+                    <Calendar className="w-5 h-5 mr-3 text-orange-500 flex-shrink-0 mt-1" />
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">
+                      <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                        Event Date
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         {formatDate(event.date)}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {formatTime(event.date)}
                       </p>
                     </div>
@@ -214,11 +218,11 @@ const EventDetail: React.FC = () => {
                 )}
 
                 {event.location && (
-                  <div className="flex items-center text-gray-600 dark:text-gray-300">
-                    <MapPin className="w-5 h-5 mr-3 text-orange-500 flex-shrink-0" />
+                  <div className="flex items-start text-gray-600 dark:text-gray-300">
+                    <MapPin className="w-5 h-5 mr-3 text-orange-500 flex-shrink-0 mt-1" />
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">Location</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="font-semibold text-gray-900 dark:text-white mb-1">Location</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         {event.location}
                       </p>
                     </div>
@@ -226,16 +230,45 @@ const EventDetail: React.FC = () => {
                 )}
 
                 {event.event_type && (
-                  <div className="flex items-center text-gray-600 dark:text-gray-300">
-                    <Award className="w-5 h-5 mr-3 text-orange-500 flex-shrink-0" />
+                  <div className="flex items-start text-gray-600 dark:text-gray-300">
+                    <Award className="w-5 h-5 mr-3 text-orange-500 flex-shrink-0 mt-1" />
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">Event Type</p>
+                      <p className="font-semibold text-gray-900 dark:text-white mb-1">Event Type</p>
                       <p className="text-sm text-blue-600 dark:text-blue-400 font-medium capitalize">
                         {event.event_type}
                       </p>
                     </div>
                   </div>
                 )}
+
+                {event.event_status && (
+                  <div className="flex items-start text-gray-600 dark:text-gray-300">
+                    <div className={`w-5 h-5 mr-3 flex-shrink-0 mt-1 rounded-full flex items-center justify-center text-xs ${
+                      event.event_status === 'upcoming'
+                        ? 'bg-blue-500 text-white'
+                        : event.event_status === 'ongoing'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-500 text-white'
+                    }`}>
+                      {event.event_status === 'upcoming' && '🔜'}
+                      {event.event_status === 'ongoing' && '🔄'}
+                      {event.event_status === 'completed' && '✅'}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white mb-1">Event Status</p>
+                      <p className={`text-sm font-medium capitalize ${
+                        event.event_status === 'upcoming'
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : event.event_status === 'ongoing'
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {event.event_status}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
               </div>
 
               {/* Event Description */}
@@ -262,7 +295,7 @@ const EventDetail: React.FC = () => {
                     {event.tags.map((tag, index) => (
                       <span
                         key={index}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 hover:bg-orange-100 hover:text-orange-800 dark:hover:bg-orange-900 dark:hover:text-orange-200 transition-colors"
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900/50 dark:to-red-900/50 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-700 hover:shadow-md transition-all duration-200"
                       >
                         <Tag className="w-3 h-3 mr-1" />
                         {tag}
@@ -271,6 +304,8 @@ const EventDetail: React.FC = () => {
                   </div>
                 </div>
               )}
+
+
 
               {/* Gallery Link */}
               <div className="border-t border-gray-200 dark:border-gray-700 pt-8">

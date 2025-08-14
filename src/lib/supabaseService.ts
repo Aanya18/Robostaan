@@ -108,6 +108,7 @@ export interface Event {
   date?: string;
   location?: string;
   event_type?: string;
+  event_status?: 'upcoming' | 'ongoing' | 'completed';
   image_url?: string;
   tags: string[];
   is_featured: boolean;

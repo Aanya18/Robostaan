@@ -1,25 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Calendar, 
-  MapPin, 
-  Users,
+import {
+  Calendar,
+  MapPin,
   Plus,
   Edit3,
   Trash2,
   X,
-  Folder,
   Tag,
   Upload,
   Shield
 } from 'lucide-react';
 import SEOHead from '../components/SEO/SEOHead';
 import { siteConfig, urlHelpers } from '../config/siteConfig';
-import DirectEventService from '../services/directEventService';
 import { Event } from '../lib/supabaseService';
 import { useAuth } from '../components/Auth/AuthProvider';
-import { eventService, EventCreateData } from '../services/eventService';
+import { useApp } from '../context/AppContext';
+import { eventService } from '../services/eventService';
 import { cloudinaryService } from '../services/cloudinaryService';
 import EventImageUploader from '../components/Admin/EventImageUploader';
 
@@ -32,6 +30,7 @@ interface EventFormDraft {
   date: string;
   location: string;
   event_type: string;
+  event_status: string;
   image_url: string;
   tags: string;
   is_featured: boolean;
@@ -46,10 +45,7 @@ const DRAFT_EXPIRY_DAYS = 7;
 const Events: React.FC = () => {
   const navigate = useNavigate();
   const { isAdmin, user } = useAuth();
-  
-  // Events state
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { events, loading: appLoading, addEvent, updateEvent, deleteEvent } = useApp();
   
   // Admin event management state
   const [showEventModal, setShowEventModal] = useState(false);
@@ -61,6 +57,7 @@ const Events: React.FC = () => {
     date: '',
     location: '',
     event_type: '',
+    event_status: 'upcoming',
     image_url: '',
     tags: '',
     is_featured: false
@@ -71,11 +68,7 @@ const Events: React.FC = () => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  // Removed filter useEffect - filters removed for now
+  // Data is automatically loaded by AppContext, no need to refresh here
 
   // Clear messages after 5 seconds
   useEffect(() => {
@@ -91,42 +84,6 @@ const Events: React.FC = () => {
       checkForDraft();
     }
   }, [isAdmin]);
-
-  // Auto-save draft when form changes (disabled to prevent confusion)
-  // useEffect(() => {
-  //   if (isAdmin && showEventModal && (eventForm.title.trim() || eventForm.description.trim())) {
-  //     const timeoutId = setTimeout(() => {
-  //       saveDraft();
-  //     }, 5000); // Save after 5 seconds of inactivity (increased from 1 second)
-
-  //     return () => clearTimeout(timeoutId);
-  //   }
-  // }, [eventForm, showEventModal, isAdmin]);
-
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      console.log('🔍 Events: Starting to fetch events...');
-      
-      const allEventsResult = await DirectEventService.getEvents({ limit: 50 });
-      console.log('📊 Events: All Events Result:', allEventsResult);
-
-      if (allEventsResult.data && Array.isArray(allEventsResult.data)) {
-        console.log(`✅ Events: Setting ${allEventsResult.data.length} events`);
-        setEvents(allEventsResult.data);
-      } else {
-        console.log('❌ Events: No events data found');
-        setEvents([]);
-      }
-
-    } catch (error) {
-      console.error('💥 Events: Critical error fetching events:', error);
-      setEvents([]);
-    } finally {
-      setLoading(false);
-      console.log('🏁 Events: Fetch completed');
-    }
-  };
 
   // Removed applyFilters function - filters removed for now
 
@@ -221,6 +178,7 @@ const Events: React.FC = () => {
         date: draft.date,
         location: draft.location,
         event_type: draft.event_type,
+        event_status: draft.event_status,
         image_url: draft.image_url,
         tags: draft.tags,
         is_featured: draft.is_featured
@@ -250,6 +208,7 @@ const Events: React.FC = () => {
         date: event.date ? event.date.split('T')[0] : '',
         location: event.location || '',
         event_type: event.event_type || '',
+        event_status: event.event_status || 'upcoming',
         image_url: event.image_url || '',
         tags: event.tags.join(', '),
         is_featured: event.is_featured
@@ -263,6 +222,7 @@ const Events: React.FC = () => {
         date: '',
         location: '',
         event_type: '',
+        event_status: 'upcoming',
         image_url: '',
         tags: '',
         is_featured: false
@@ -282,6 +242,7 @@ const Events: React.FC = () => {
       date: '',
       location: '',
       event_type: '',
+      event_status: 'upcoming',
       image_url: '',
       tags: '',
       is_featured: false
@@ -306,38 +267,28 @@ const Events: React.FC = () => {
       const cloudinaryFolder = eventForm.cloudinary_folder || 
                              eventService.generateFolderName(eventForm.title);
       
-      const eventData: EventCreateData = {
+      const eventData = {
         title: eventForm.title,
         description: eventForm.description || undefined,
         cloudinary_folder: cloudinaryFolder,
         date: eventForm.date || undefined,
         location: eventForm.location || undefined,
         event_type: eventForm.event_type || undefined,
+        event_status: eventForm.event_status as 'upcoming' | 'ongoing' | 'completed',
         image_url: eventForm.image_url || undefined,
         tags: eventForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
         is_featured: eventForm.is_featured
       };
 
       if (editingEvent) {
-        const { success, error } = await eventService.updateEvent(editingEvent.id, eventData);
-        if (success) {
-          console.log('✅ Event updated successfully');
-          setEventMessage({ type: 'success', text: '✅ Event updated successfully in database! It is now live on the website.' });
-        } else {
-          throw new Error(error || 'Failed to update event');
-        }
+        await updateEvent(editingEvent.id, eventData);
+        console.log('✅ Event updated successfully');
+        setEventMessage({ type: 'success', text: '✅ Event updated successfully in database! It is now live on the website.' });
       } else {
-        const { success, error } = await eventService.createEvent(eventData);
-        if (success) {
-          console.log('✅ Event created successfully');
-          setEventMessage({ type: 'success', text: '✅ Event created successfully in database! It is now live on the website.' });
-        } else {
-          throw new Error(error || 'Failed to create event');
-        }
+        await addEvent(eventData);
+        console.log('✅ Event created successfully');
+        setEventMessage({ type: 'success', text: '✅ Event created successfully in database! It is now live on the website.' });
       }
-
-      // Refresh events
-      await fetchEvents();
       
       // Clear draft and close modal after delay
       setTimeout(() => {
@@ -368,18 +319,10 @@ const Events: React.FC = () => {
     try {
       setDeletingEventId(eventId);
       console.log('🔄 Attempting to delete event with ID:', eventId);
-      const { success, error } = await eventService.deleteEvent(eventId);
-      
-      console.log('📊 Delete result:', { success, error });
-      
-      if (success) {
-        console.log('✅ Event deleted successfully');
-        setEventMessage({ type: 'success', text: 'Event deleted successfully!' });
-        await fetchEvents();
-      } else {
-        console.error('❌ Delete failed:', error);
-        throw new Error(error || 'Failed to delete event');
-      }
+
+      await deleteEvent(eventId);
+      console.log('✅ Event deleted successfully');
+      setEventMessage({ type: 'success', text: 'Event deleted successfully!' });
     } catch (error: any) {
       console.error('💥 Delete event error:', error);
       setEventMessage({ type: 'error', text: error.message || 'Failed to delete event' });
@@ -565,7 +508,7 @@ const Events: React.FC = () => {
           </motion.div>
 
           {/* Loading State */}
-          {loading && (
+          {appLoading && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -577,7 +520,7 @@ const Events: React.FC = () => {
           )}
 
           {/* Events Grid */}
-          {!loading && (
+          {!appLoading && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -585,54 +528,87 @@ const Events: React.FC = () => {
             >
               {events.length === 0 ? (
                 <div className="text-center py-20">
-                  <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                    <Calendar className="w-12 h-12 text-blue-500 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                     No events found
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    Stay tuned for upcoming events!
+                  <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                    Stay tuned for upcoming robotics events, workshops, and community meetups!
                   </p>
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl inline-flex items-center space-x-2 font-semibold shadow-lg">
+                    <Calendar className="w-5 h-5" />
+                    <span>Events coming soon</span>
+                  </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                   {events.map((event, index) => (
                     <motion.div
                       key={event.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: index * 0.1 }}
-                      whileHover={{ y: -5 }}
+                      whileHover={{ y: -8, scale: 1.02 }}
                       onClick={() => navigate(`/events/${event.id}`)}
-                      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 relative h-full flex flex-col cursor-pointer"
+                      className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 relative cursor-pointer group border border-gray-100 dark:border-gray-700"
                     >
                       {/* Event Image */}
-                      <div className="relative">
+                      <div className="relative overflow-hidden">
                         {event.image_url ? (
                           <img
                             src={event.image_url}
                             alt={event.title}
-                            className="w-full h-48 object-cover"
+                            className="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110"
                           />
                         ) : (
-                          <div className="w-full h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                            <Calendar className="w-16 h-16 text-white opacity-80" />
+                          <div className="w-full h-56 bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 flex items-center justify-center">
+                            <Calendar className="w-20 h-20 text-white opacity-90" />
                           </div>
                         )}
+
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                        {/* Featured Badge */}
                         {event.is_featured && (
-                          <div className="absolute top-4 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                            Featured
+                          <div className="absolute top-4 left-4 bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm">
+                            ⭐ Featured
                           </div>
                         )}
-                        
+
+                        {/* Event Type Badge */}
+                        {event.event_type && (
+                          <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-800 dark:text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                            {event.event_type}
+                          </div>
+                        )}
+
+                        {/* Event Status Badge */}
+                        {event.event_status && (
+                          <div className={`absolute ${event.event_type ? 'top-16' : 'top-4'} right-4 px-3 py-1 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm ${
+                            event.event_status === 'upcoming'
+                              ? 'bg-blue-100/90 dark:bg-blue-900/90 text-blue-800 dark:text-blue-200'
+                              : event.event_status === 'ongoing'
+                              ? 'bg-green-100/90 dark:bg-green-900/90 text-green-800 dark:text-green-200'
+                              : 'bg-gray-100/90 dark:bg-gray-700/90 text-gray-800 dark:text-gray-200'
+                          }`}>
+                            {event.event_status === 'upcoming' && '🔜 Upcoming'}
+                            {event.event_status === 'ongoing' && '🔄 Ongoing'}
+                            {event.event_status === 'completed' && '✅ Completed'}
+                          </div>
+                        )}
+
                         {/* Admin Controls Overlay */}
                         {isAdmin && (
-                          <div className="absolute top-4 right-4 flex space-x-2 bg-black/50 rounded-lg p-1">
+                          <div className="absolute bottom-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openEventModal(event);
                               }}
-                              className="p-2 text-white hover:text-orange-400 transition-colors"
+                              className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors shadow-lg"
                               title="Edit event"
                             >
                               <Edit3 className="w-4 h-4" />
@@ -643,10 +619,10 @@ const Events: React.FC = () => {
                                 handleDeleteEvent(event.id);
                               }}
                               disabled={deletingEventId === event.id}
-                              className={`p-2 text-white transition-colors ${
-                                deletingEventId === event.id 
-                                  ? 'opacity-50 cursor-not-allowed' 
-                                  : 'hover:text-red-400'
+                              className={`p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg ${
+                                deletingEventId === event.id
+                                  ? 'opacity-50 cursor-not-allowed'
+                                  : ''
                               }`}
                               title={deletingEventId === event.id ? "Deleting..." : "Delete event"}
                             >
@@ -661,62 +637,69 @@ const Events: React.FC = () => {
                       </div>
 
                       {/* Event Content */}
-                      <div className="p-6 flex flex-col h-full">
-                        {/* Event Type & Folder Info */}
-                        <div className="flex items-center justify-between mb-3">
-                          {event.event_type && (
-                            <span className="inline-flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full font-medium capitalize">
-                              {event.event_type}
-                            </span>
-                          )}
-                        </div>
-
+                      <div className="p-6">
                         {/* Tags */}
                         {event.tags && event.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {event.tags.slice(0, 2).map((tag, tagIndex) => (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {event.tags.slice(0, 3).map((tag, tagIndex) => (
                               <span
                                 key={tagIndex}
-                                className="inline-flex items-center px-2 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs rounded-full"
+                                className="inline-flex items-center px-3 py-1 bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900/50 dark:to-red-900/50 text-orange-700 dark:text-orange-300 text-xs rounded-full font-medium border border-orange-200 dark:border-orange-700"
                               >
+                                <Tag className="w-3 h-3 mr-1" />
                                 {tag}
                               </span>
                             ))}
-                            {event.tags.length > 2 && (
-                              <span className="text-gray-500 text-xs">+{event.tags.length - 2} more</span>
+                            {event.tags.length > 3 && (
+                              <span className="text-gray-500 dark:text-gray-400 text-xs font-medium px-2 py-1">
+                                +{event.tags.length - 3} more
+                              </span>
                             )}
                           </div>
                         )}
 
                         {/* Event Title */}
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 h-14 overflow-hidden">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 leading-tight">
                           {event.title}
                         </h3>
-                        
+
                         {/* Event Description */}
                         {event.description && (
-                          <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2 h-10 overflow-hidden">
+                          <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed">
                             {event.description}
                           </p>
                         )}
 
-                        {/* Event Footer */}
-                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mt-auto">
-                          <div className="flex items-center space-x-4">
-                            {event.date && (
-                              <div className="flex items-center space-x-1">
-                                <Calendar className="w-4 h-4" />
-                                <span>{formatDate(event.date)}</span>
+                        {/* Event Details */}
+                        <div className="space-y-3">
+                          {event.date && (
+                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                              <div className="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full mr-3">
+                                <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                               </div>
-                            )}
-                          </div>
-                          {event.location && (
-                            <div className="flex items-center space-x-1 text-orange-500">
-                              <MapPin className="w-4 h-4" />
-                              <span className="font-medium truncate max-w-[100px]">{event.location}</span>
+                              <div>
+                                <span className="font-medium text-gray-900 dark:text-white">
+                                  {formatDate(event.date)}
+                                </span>
+                              </div>
                             </div>
                           )}
+
+                          {event.location && (
+                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                              <div className="flex items-center justify-center w-8 h-8 bg-orange-100 dark:bg-orange-900/50 rounded-full mr-3">
+                                <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                              </div>
+                              <span className="font-medium text-gray-900 dark:text-white truncate">
+                                {event.location}
+                              </span>
+                            </div>
+                          )}
+
+
                         </div>
+
+
                       </div>
                     </motion.div>
                   ))}
@@ -902,6 +885,22 @@ const Events: React.FC = () => {
                           {type ? type.charAt(0).toUpperCase() + type.slice(1) : ''}
                         </option>
                       ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Event Status *
+                    </label>
+                    <select
+                      value={eventForm.event_status}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, event_status: e.target.value }))}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
+                    >
+                      <option value="upcoming">🔜 Upcoming</option>
+                      <option value="ongoing">🔄 Ongoing</option>
+                      <option value="completed">✅ Completed</option>
                     </select>
                   </div>
 

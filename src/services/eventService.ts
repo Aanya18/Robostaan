@@ -9,6 +9,7 @@ export interface EventCreateData {
   date?: string;
   location?: string;
   event_type?: string;
+  event_status?: 'upcoming' | 'ongoing' | 'completed';
   image_url?: string;
   tags?: string[];
   is_featured?: boolean;
@@ -20,6 +21,7 @@ export interface EventUpdateData {
   date?: string;
   location?: string;
   event_type?: string;
+  event_status?: 'upcoming' | 'ongoing' | 'completed';
   image_url?: string;
   tags?: string[];
   is_featured?: boolean;

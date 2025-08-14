@@ -38,10 +38,7 @@ const Blogs: React.FC = () => {
     featured: false
   });
 
-  // Load initial blogs and refresh data
-  useEffect(() => {
-    refreshData();
-  }, []);
+  // Data is automatically loaded by AppContext, no need to refresh here
 
   // Reset page when search or filter changes
   useEffect(() => {
