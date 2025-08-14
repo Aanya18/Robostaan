@@ -137,21 +137,9 @@ const EventGalleryPreview: React.FC<EventGalleryPreviewProps> = ({
             </motion.div>
           )}
         </div>
+from-blue-500 to-purple-500 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-md hover:shadow-lg"
 
-        {/* View in Gallery Button */}
-        {showViewAll && onViewAll && (
-          <div className="mt-4 flex justify-center">
-            <button
-              onClick={onViewAll}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-md hover:shadow-lg"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              View Full Gallery
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </button>
-          </div>
-        )}
-      </div>
+
 
       {/* Lightbox */}
       <AnimatePresence>

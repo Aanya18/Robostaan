@@ -510,7 +510,7 @@ class EventService {
     }
 
     // Validate folder name format
-    if (!/^[a-z0-9-]+$/.test(data.cloudinary_folder)) {
+    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(data.cloudinary_folder)) {
       return { 
         valid: false, 
         error: 'Folder name can only contain lowercase letters, numbers, and hyphens' 

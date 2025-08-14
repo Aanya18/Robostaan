@@ -842,8 +842,8 @@ const Events: React.FC = () => {
                         className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
                         placeholder="cloudinary-folder-name"
                         required
-                        pattern="^[a-z0-9-]+$"
-                        title="Only lowercase letters, numbers, and hyphens allowed"
+                        pattern="[a-z0-9][a-z0-9-]*[a-z0-9]"
+                        title="Only lowercase letters, numbers, and hyphens allowed. Must start and end with a letter or number."
                       />
                       <button
                         type="button"

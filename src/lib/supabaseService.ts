@@ -120,6 +120,10 @@ export interface Event {
 class SupabaseService {
   private readonly connection = getSupabaseConnection();
 
+  async getClient(): Promise<SupabaseClient> {
+    return await this.connection.getClient();
+  }
+
   // ========== BLOG OPERATIONS ==========
 
   async getBlogs(options: {
@@ -980,9 +984,6 @@ export const {
   getConnectionStatus,
   getHealthStatus,
   cleanup,
-  executeWithPool,
-  getPoolStatus,
-  shutdownPool,
   getEvents,
   getFeaturedEvents,
   getEventById,
