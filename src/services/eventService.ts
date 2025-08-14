@@ -238,7 +238,8 @@ class EventService {
           try {
             // Try to get folder info from Cloudinary
             const images = await cloudinaryService.searchImages({
-              folder: event.cloudinary_folder,
+              // Ensure we search in the same folder structure used for uploads
+              folder: `events/${event.cloudinary_folder}`,
               max_results: 1 // We just need the count, not all images
             });
             

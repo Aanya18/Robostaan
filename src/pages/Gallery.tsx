@@ -35,15 +35,17 @@ const Gallery: React.FC = () => {
       setLoading(true);
       console.log('🔍 Fetching events for gallery...');
       
-      const { data, error } = await eventService.getEvents({ limit: 50 });
+      // Fetch events with image counts and hide empty folders
+      const { data, error } = await eventService.getEventsWithImageCounts();
       
       if (error) {
         setError(`Failed to fetch events: ${JSON.stringify(error)}`);
         console.error('❌ Fetch events error:', error);
       } else {
-        console.log('✅ Fetched events:', data);
-        setEvents(data || []);
-        console.log(`📝 Found ${data?.length || 0} events/folders`);
+        const eventsWithImages = (data || []).filter((e: any) => (e.image_count || 0) > 0);
+        console.log('✅ Fetched events with counts:', data);
+        console.log(`📝 Found ${eventsWithImages.length} events with images (hidden ${Math.max((data?.length || 0) - eventsWithImages.length, 0)} without images)`);
+        setEvents(eventsWithImages);
       }
     } catch (err: any) {
       setError(`Failed to fetch events: ${err.message}`);
