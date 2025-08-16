@@ -116,9 +116,15 @@ export const siteConfig = {
     main: [
       { name: 'Home', path: '/', external: false },
       { name: 'About', path: '/about', external: false },
-      { name: 'Blogs', path: '/blogs', external: false },
-      { name: 'Courses', path: '/courses', external: false },
-      { name: 'Projects', path: '/projects', external: false },
+      {
+        name: 'Learn by Build',
+        dropdown: true,
+        children: [
+          { name: 'Blogs', path: '/blogs', external: false },
+          { name: 'Courses', path: '/courses', external: false },
+          { name: 'Projects', path: '/projects', external: false }
+        ]
+      },
       {
         name: 'Community',
         dropdown: true,
