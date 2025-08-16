@@ -120,18 +120,54 @@ export const siteConfig = {
         name: 'Learn by Build',
         dropdown: true,
         children: [
-          { name: 'Blogs', path: '/blogs', external: false },
-          { name: 'Courses', path: '/courses', external: false },
-          { name: 'Projects', path: '/projects', external: false }
+          { 
+            name: 'Blogs', 
+            path: '/blogs', 
+            external: false,
+            icon: 'BookOpen',
+            description: 'Tutorials & Articles'
+          },
+          { 
+            name: 'Courses', 
+            path: '/courses', 
+            external: false,
+            icon: 'GraduationCap',
+            description: 'Structured Learning'
+          },
+          { 
+            name: 'Projects', 
+            path: '/projects', 
+            external: false,
+            icon: 'Code',
+            description: 'Hands-on Building'
+          }
         ]
       },
       {
         name: 'Community',
         dropdown: true,
         children: [
-          { name: 'Gallery', path: '/gallery', external: false },
-          { name: 'Events', path: '/events', external: false },
-          { name: 'Partnership', path: '/partnership', external: false }
+          { 
+            name: 'Gallery', 
+            path: '/gallery', 
+            external: false,
+            icon: 'Images',
+            description: 'Event Photos & Memories'
+          },
+          { 
+            name: 'Events', 
+            path: '/events', 
+            external: false,
+            icon: 'Calendar',
+            description: 'Workshops & Competitions'
+          },
+          { 
+            name: 'Partnership', 
+            path: '/partnership', 
+            external: false,
+            icon: 'Handshake',
+            description: 'Collaborate With Us'
+          }
         ]
       },
       { name: 'Contact', path: '/contact', external: false }
@@ -190,6 +226,29 @@ export const siteConfig = {
       coursesPerPage: 9,
       featuredCount: 3,
       categories: ['Beginner', 'Intermediate', 'Advanced']
+    },
+    projects: {
+      projectsPerPage: 12,
+      featuredCount: 4,
+      categories: ['Robotics', 'AI/ML', 'IoT', 'Automation', 'Drones']
+    }
+  },
+
+  // Quick Access Links (for featured content)
+  quickAccess: {
+    popular: {
+      blogs: [
+        { title: 'Getting Started with Arduino', slug: 'arduino-basics' },
+        { title: 'Building Your First Robot', slug: 'first-robot' }
+      ],
+      courses: [
+        { title: 'Robotics Fundamentals', id: 'robotics-101' },
+        { title: 'AI for Beginners', id: 'ai-basics' }
+      ],
+      projects: [
+        { title: 'Line Following Robot', id: 'line-follower' },
+        { title: 'Smart Home System', id: 'smart-home' }
+      ]
     }
   },
   
