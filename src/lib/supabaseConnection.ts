@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createClient, SupabaseClient, AuthChangeEvent, Session, RealtimeChannel } from '@supabase/supabase-js';
 
 // Types for better type safety
@@ -160,7 +162,7 @@ class SupabaseConnection {
   private setupAuthMonitoring(): void {
     if (!this.client) return;
 
-    this.client.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+    this.client.auth.onAuthStateChange(async (event: AuthChangeEvent, _session: Session | null) => {
       console.log('[Supabase] Auth event:', event);
 
       switch (event) {
@@ -382,7 +384,7 @@ class SupabaseConnection {
     
     try {
       await this.reconnect();
-    } catch (err) {
+    } catch (_err) {
       // If reconnect fails, schedule another attempt in 5 seconds
       setTimeout(() => {
         if (this.connectionState !== 'connected') {
@@ -659,7 +661,7 @@ class SupabaseConnection {
   }
 
   private markChannelsInactive(): void {
-    for (const [channelName, subscription] of this.activeChannels.entries()) {
+    for (const [_channelName, subscription] of this.activeChannels.entries()) {
       subscription.isActive = false;
       subscription.lastActivity = Date.now();
     }

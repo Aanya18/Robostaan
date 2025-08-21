@@ -1,4 +1,5 @@
 // Cloudinary Service for handling image uploads
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // This service handles client-side uploads to Cloudinary
 
 export interface CloudinaryUploadResponse {
@@ -27,6 +28,12 @@ export interface CloudinaryError {
   http_code: number;
 }
 
+export interface CloudinarySearchResult {
+  resources: any[];
+  next_cursor: string | null;
+  total_count: number;
+}
+
 class CloudinaryService {
   private readonly cloudName: string;
   private readonly uploadPreset: string;
@@ -47,9 +54,10 @@ class CloudinaryService {
   /**
    * Upload a single file to Cloudinary
    */
-  async uploadImage(
+  async uploadFile(
     file: File,
     options: {
+      resourceType?: 'image' | 'video' | 'raw' | 'auto';
       folder?: string;
       tags?: string[];
       transformation?: string;
@@ -106,8 +114,10 @@ class CloudinaryService {
       //   formData.append('eager', options.eager.join('|'));
       // }
 
+      const resourceType = options.resourceType || 'auto';
+      
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${this.cloudName}/image/upload`,
+        `https://api.cloudinary.com/v1_1/${this.cloudName}/${resourceType}/upload`,
         {
           method: 'POST',
           body: formData,
@@ -130,9 +140,10 @@ class CloudinaryService {
   /**
    * Upload multiple files to Cloudinary
    */
-  async uploadMultipleImages(
+  async uploadMultipleFiles(
     files: File[],
     options: {
+      resourceType?: 'image' | 'video' | 'raw' | 'auto';
       folder?: string;
       tags?: string[];
       transformation?: string;
@@ -146,7 +157,7 @@ class CloudinaryService {
 
     for (let i = 0; i < files.length; i++) {
       try {
-        const result = await this.uploadImage(files[i], {
+        const result = await this.uploadFile(files[i], {
           ...options,
           public_id: `${Date.now()}_${i}` // Ensure unique public_id
         });
@@ -251,21 +262,47 @@ class CloudinaryService {
   /**
    * Validate file before upload
    */
-  validateFile(file: File): { valid: boolean; error?: string } {
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  validateFile(file: File, fileType: 'image' | 'video' | 'document' | 'all' = 'image'): { valid: boolean; error?: string } {
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    let allowedTypes: string[] = [];
+    
+    // Define allowed types based on file type parameter
+    switch(fileType) {
+      case 'image':
+        allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        break;
+      case 'video':
+        allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+        break;
+      case 'document':
+        allowedTypes = ['application/pdf', 'application/vnd.ms-powerpoint', 
+                       'application/vnd.openxmlformats-officedocument.presentationml.presentation', 
+                       'application/msword', 
+                       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        break;
+      case 'all':
+        allowedTypes = [
+          'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+          'video/mp4', 'video/webm', 'video/ogg',
+          'application/pdf', 'application/vnd.ms-powerpoint', 
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation', 
+          'application/msword', 
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        break;
+    }
 
     if (!allowedTypes.includes(file.type)) {
       return {
         valid: false,
-        error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP files are allowed.'
+        error: `Invalid file type. Only ${fileType} files are allowed.`
       };
     }
 
     if (file.size > maxSize) {
       return {
         valid: false,
-        error: 'File size too large. Maximum size is 10MB.'
+        error: 'File size too large. Maximum size is 50MB.'
       };
     }
 
@@ -281,7 +318,7 @@ class CloudinaryService {
     next_cursor?: string;
     resource_type?: string;
     type?: string;
-  } = {}): Promise<any> {
+  } = {}): Promise<CloudinarySearchResult> {
     try {
       // Try to use the backend endpoint for Cloudinary Admin API
       const response = await fetch('/api/cloudinary/search', {
@@ -322,7 +359,7 @@ class CloudinaryService {
   async getFolderImages(folderName: string, options: {
     max_results?: number;
     next_cursor?: string;
-  } = {}): Promise<any> {
+  } = {}): Promise<CloudinarySearchResult> {
     return this.searchImages({
       folder: folderName,
       max_results: options.max_results || 30,
@@ -333,7 +370,7 @@ class CloudinaryService {
   /**
    * Generate upload signature (requires server-side implementation)
    */
-  async generateSignature(params: Record<string, any>): Promise<string> {
+  async generateSignature(params: Record<string, unknown>): Promise<string> {
     const response = await fetch('/api/cloudinary/signature', {
       method: 'POST',
       headers: {

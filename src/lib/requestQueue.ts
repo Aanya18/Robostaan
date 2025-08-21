@@ -1,4 +1,5 @@
 import { getSupabaseConnection } from './supabaseConnection';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface QueuedRequest {
   id: string;
@@ -118,9 +119,10 @@ class RequestQueue {
       
       if (status === 'disconnected' || status === 'error') {
         console.log('Connection lost, attempting to reconnect...');
-        await this.connection.ensureConnection();
-        
-        // Wait a bit for connection to stabilize
+        // SupabaseConnection exposes a `reconnect` method to re-establish connectivity
+        await this.connection.reconnect();
+
+        // Wait briefly for the connection to stabilise before proceeding
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     } catch (error) {

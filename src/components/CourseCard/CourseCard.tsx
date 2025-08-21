@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Users, Star, Edit, Trash2, Eye, Bell, BellOff } from 'lucide-react';
+import { Clock, Users, Star, Edit, Trash2, Eye, Bell, BellOff, Layers } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../Auth/AuthProvider';
 import { Course } from '../../lib/supabaseService';
@@ -136,16 +136,31 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onEdit, onDelete }) => 
               <span>{isNotifying ? 'Notifications On' : 'Notify Me'}</span>
             </motion.button>
           ) : (
-            <Link to={`/course/${course.id}`} className="flex-1">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full flex items-center justify-center space-x-2 bg-orange-500 text-white py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors"
-              >
-                <Eye className="w-4 h-4" />
-                <span>View Course</span>
-              </motion.button>
-            </Link>
+            <>
+              <Link to={`/course/${course.id}`} className={isAdmin ? "flex-1" : "w-full"}>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full flex items-center justify-center space-x-2 bg-orange-500 text-white py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>View Course</span>
+                </motion.button>
+              </Link>
+              
+              {isAdmin && !isComingSoon && (
+                <Link to={`/admin/course/${course.id}/modules`} className="flex-1">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                  >
+                    <Layers className="w-4 h-4" />
+                    <span>Manage Modules</span>
+                  </motion.button>
+                </Link>
+              )}
+            </>
           )}
         </div>
       </div>

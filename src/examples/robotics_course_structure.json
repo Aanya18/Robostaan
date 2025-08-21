@@ -1,0 +1,657 @@
+{
+  "title": "Introduction to Robotics Programming",
+  "description": "Learn the fundamentals of robotics programming, from basic principles to advanced concepts. This comprehensive course covers everything you need to know to get started with robotics development.",
+  "image": "https://res.cloudinary.com/demo/image/upload/v1580125016/sample.jpg",
+  "duration": "8 weeks",
+  "category": "Beginner",
+  "featured": true,
+  "modules": [
+    {
+      "title": "Foundations of Robotics",
+      "description": "Introduction to robotics systems, hardware components, and basic programming concepts.",
+      "sequence_order": 1,
+      "lectures": [
+        {
+          "title": "Introduction to Robotics",
+          "description": "Overview of robotics, its history, and modern applications.",
+          "content": "<p>This lecture introduces you to the fascinating world of robotics. We'll explore the history of robotics from ancient automatons to modern industrial and consumer robots.</p><h3>Topics covered:</h3><ul><li>History of robotics</li><li>Types of robots</li><li>Applications in industry and consumer products</li><li>Future of robotics</li></ul>",
+          "duration": "45 minutes",
+          "sequence_order": 1,
+          "video_url": "https://res.cloudinary.com/demo/video/upload/v1580125016/sample.mp4",
+          "slides_url": "https://res.cloudinary.com/demo/raw/upload/v1580125016/sample.pdf",
+          "quiz": {
+            "title": "Introduction to Robotics Quiz",
+            "description": "Test your understanding of basic robotics concepts.",
+            "passing_score": 70,
+            "questions": [
+              {
+                "question_text": "Which of the following is NOT a common type of robot?",
+                "question_type": "multiple_choice",
+                "sequence_order": 1,
+                "options": [
+                  {
+                    "option_text": "Industrial arm robots",
+                    "is_correct": false,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "Telepresence robots",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  },
+                  {
+                    "option_text": "Quantum robots",
+                    "is_correct": true,
+                    "sequence_order": 3
+                  },
+                  {
+                    "option_text": "Mobile robots",
+                    "is_correct": false,
+                    "sequence_order": 4
+                  }
+                ]
+              },
+              {
+                "question_text": "When was the first industrial robot installed?",
+                "question_type": "multiple_choice",
+                "sequence_order": 2,
+                "options": [
+                  {
+                    "option_text": "1954",
+                    "is_correct": false,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "1961",
+                    "is_correct": true,
+                    "sequence_order": 2
+                  },
+                  {
+                    "option_text": "1973",
+                    "is_correct": false,
+                    "sequence_order": 3
+                  },
+                  {
+                    "option_text": "1985",
+                    "is_correct": false,
+                    "sequence_order": 4
+                  }
+                ]
+              },
+              {
+                "question_text": "Robotics is an interdisciplinary branch of engineering and science.",
+                "question_type": "true_false",
+                "sequence_order": 3,
+                "options": [
+                  {
+                    "option_text": "True",
+                    "is_correct": true,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "False",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "title": "Robot Hardware Components",
+          "description": "Understanding the key hardware components that make up a robot.",
+          "content": "<p>This lecture explores the essential hardware components that make up a robot. We'll examine sensors, actuators, controllers, and power systems.</p><h3>Topics covered:</h3><ul><li>Sensors (vision, proximity, touch)</li><li>Actuators and motors</li><li>Controllers and processors</li><li>Power systems and batteries</li></ul>",
+          "duration": "50 minutes",
+          "sequence_order": 2,
+          "video_url": "https://res.cloudinary.com/demo/video/upload/v1580125016/sample.mp4",
+          "slides_url": "https://res.cloudinary.com/demo/raw/upload/v1580125016/sample.pdf",
+          "quiz": {
+            "title": "Robot Hardware Quiz",
+            "description": "Test your knowledge of robot hardware components.",
+            "passing_score": 70,
+            "questions": [
+              {
+                "question_text": "Which sensor type is used for distance measurement?",
+                "question_type": "multiple_choice",
+                "sequence_order": 1,
+                "options": [
+                  {
+                    "option_text": "Temperature sensor",
+                    "is_correct": false,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "Ultrasonic sensor",
+                    "is_correct": true,
+                    "sequence_order": 2
+                  },
+                  {
+                    "option_text": "Light sensor",
+                    "is_correct": false,
+                    "sequence_order": 3
+                  },
+                  {
+                    "option_text": "Pressure sensor",
+                    "is_correct": false,
+                    "sequence_order": 4
+                  }
+                ]
+              },
+              {
+                "question_text": "Servos are a type of actuator.",
+                "question_type": "true_false",
+                "sequence_order": 2,
+                "options": [
+                  {
+                    "option_text": "True",
+                    "is_correct": true,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "False",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "title": "Introduction to Robot Programming",
+          "description": "Basic principles and languages used in robot programming.",
+          "content": "<p>This lecture introduces the principles and languages used in robot programming. We'll look at popular programming languages and frameworks used in the field.</p><h3>Topics covered:</h3><ul><li>Robot programming principles</li><li>Popular languages (Python, C++, ROS)</li><li>Programming paradigms</li><li>Simple control algorithms</li></ul>",
+          "duration": "55 minutes",
+          "sequence_order": 3,
+          "video_url": "https://res.cloudinary.com/demo/video/upload/v1580125016/sample.mp4",
+          "slides_url": "https://res.cloudinary.com/demo/raw/upload/v1580125016/sample.pdf",
+          "quiz": {
+            "title": "Robot Programming Basics Quiz",
+            "description": "Test your understanding of robot programming concepts.",
+            "passing_score": 70,
+            "questions": [
+              {
+                "question_text": "Which of these is NOT a common language used in robotics?",
+                "question_type": "multiple_choice",
+                "sequence_order": 1,
+                "options": [
+                  {
+                    "option_text": "Python",
+                    "is_correct": false,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "C++",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  },
+                  {
+                    "option_text": "Ruby",
+                    "is_correct": true,
+                    "sequence_order": 3
+                  },
+                  {
+                    "option_text": "Java",
+                    "is_correct": false,
+                    "sequence_order": 4
+                  }
+                ]
+              },
+              {
+                "question_text": "ROS stands for Robot Operating System.",
+                "question_type": "true_false",
+                "sequence_order": 2,
+                "options": [
+                  {
+                    "option_text": "True",
+                    "is_correct": true,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "False",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "project": {
+        "title": "Build a Basic Robot Model",
+        "description": "Create a detailed model of a robot, identifying and explaining all major components.",
+        "instructions": "<p>For this project, you will create a detailed model of a robot (either physical or virtual) and identify all major components.</p><h3>Requirements:</h3><ol><li>Choose a robot type (industrial, mobile, humanoid, etc.)</li><li>Identify and label all major hardware components</li><li>Explain the function of each component</li><li>Describe how the components interact</li><li>Submit a report with diagrams and explanations</li></ol>",
+        "resources_urls": [
+          "https://example.com/robotics/hardware-guide",
+          "https://example.com/robotics/model-templates"
+        ],
+        "submission_type": "file"
+      }
+    },
+    {
+      "title": "Programming Fundamentals for Robotics",
+      "description": "Learn essential programming concepts and their application to robot control.",
+      "sequence_order": 2,
+      "lectures": [
+        {
+          "title": "Variables and Data Types in Robotics",
+          "description": "Understanding how variables and data types are used in robot programming.",
+          "content": "<p>This lecture explores how variables and data types are used specifically in robotics programming. We'll look at representing sensor data, actuator commands, and robot state.</p><h3>Topics covered:</h3><ul><li>Numeric data for sensor readings</li><li>Boolean logic for decision making</li><li>Arrays and lists for sensor arrays</li><li>Custom data types for robot state</li></ul>",
+          "duration": "45 minutes",
+          "sequence_order": 1,
+          "video_url": "https://res.cloudinary.com/demo/video/upload/v1580125016/sample.mp4",
+          "slides_url": "https://res.cloudinary.com/demo/raw/upload/v1580125016/sample.pdf",
+          "quiz": {
+            "title": "Variables and Data Types Quiz",
+            "description": "Test your understanding of variables and data types in robotics.",
+            "passing_score": 70,
+            "questions": [
+              {
+                "question_text": "Which data type is most appropriate for storing a robot's orientation?",
+                "question_type": "multiple_choice",
+                "sequence_order": 1,
+                "options": [
+                  {
+                    "option_text": "Boolean",
+                    "is_correct": false,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "String",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  },
+                  {
+                    "option_text": "Float array (quaternion)",
+                    "is_correct": true,
+                    "sequence_order": 3
+                  },
+                  {
+                    "option_text": "Character",
+                    "is_correct": false,
+                    "sequence_order": 4
+                  }
+                ]
+              },
+              {
+                "question_text": "A boolean variable can only have two possible values.",
+                "question_type": "true_false",
+                "sequence_order": 2,
+                "options": [
+                  {
+                    "option_text": "True",
+                    "is_correct": true,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "False",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "title": "Control Structures for Robot Behavior",
+          "description": "Using loops, conditionals, and other control structures for robot programming.",
+          "content": "<p>This lecture focuses on how control structures like conditionals and loops are used to create robot behaviors. We'll explore decision-making algorithms and behavior control.</p><h3>Topics covered:</h3><ul><li>If-else statements for sensor responses</li><li>Loops for continuous monitoring</li><li>Switch statements for state machines</li><li>Basic behavioral programming</li></ul>",
+          "duration": "50 minutes",
+          "sequence_order": 2,
+          "video_url": "https://res.cloudinary.com/demo/video/upload/v1580125016/sample.mp4",
+          "slides_url": "https://res.cloudinary.com/demo/raw/upload/v1580125016/sample.pdf",
+          "quiz": {
+            "title": "Control Structures Quiz",
+            "description": "Test your understanding of control structures in robotics.",
+            "passing_score": 70,
+            "questions": [
+              {
+                "question_text": "Which control structure is most appropriate for a robot that needs to continuously monitor sensor data?",
+                "question_type": "multiple_choice",
+                "sequence_order": 1,
+                "options": [
+                  {
+                    "option_text": "If statement",
+                    "is_correct": false,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "While loop",
+                    "is_correct": true,
+                    "sequence_order": 2
+                  },
+                  {
+                    "option_text": "Switch statement",
+                    "is_correct": false,
+                    "sequence_order": 3
+                  },
+                  {
+                    "option_text": "Goto statement",
+                    "is_correct": false,
+                    "sequence_order": 4
+                  }
+                ]
+              },
+              {
+                "question_text": "Finite state machines are commonly used in robotics programming.",
+                "question_type": "true_false",
+                "sequence_order": 2,
+                "options": [
+                  {
+                    "option_text": "True",
+                    "is_correct": true,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "False",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "project": {
+        "title": "Simple Line-Following Robot Program",
+        "description": "Create a program that allows a robot to follow a line using sensor inputs and motor controls.",
+        "instructions": "<p>In this project, you'll write a program that enables a robot to follow a line using sensor inputs and motor controls.</p><h3>Requirements:</h3><ol><li>Write code to read from line sensors</li><li>Implement a control algorithm for line following</li><li>Use proportional control for smooth following</li><li>Handle edge cases (line breaks, intersections)</li><li>Test your code using the provided simulator</li></ol>",
+        "resources_urls": [
+          "https://example.com/robotics/line-following-guide",
+          "https://example.com/robotics/simulator-download"
+        ],
+        "submission_type": "file"
+      }
+    },
+    {
+      "title": "Sensors and Perception",
+      "description": "Understanding how robots perceive their environment through sensors.",
+      "sequence_order": 3,
+      "lectures": [
+        {
+          "title": "Introduction to Robot Sensors",
+          "description": "Overview of different sensor types used in robotics.",
+          "content": "<p>This lecture introduces the various types of sensors used in robotics, from simple light sensors to complex vision systems.</p><h3>Topics covered:</h3><ul><li>Classification of sensors</li><li>Common sensor types</li><li>Sensor specifications and limitations</li><li>Choosing the right sensors for your robot</li></ul>",
+          "duration": "45 minutes",
+          "sequence_order": 1,
+          "video_url": "https://res.cloudinary.com/demo/video/upload/v1580125016/sample.mp4",
+          "slides_url": "https://res.cloudinary.com/demo/raw/upload/v1580125016/sample.pdf",
+          "quiz": {
+            "title": "Robot Sensors Quiz",
+            "description": "Test your knowledge of robot sensors.",
+            "passing_score": 70,
+            "questions": [
+              {
+                "question_text": "Which sensor is used to measure rotational movement?",
+                "question_type": "multiple_choice",
+                "sequence_order": 1,
+                "options": [
+                  {
+                    "option_text": "Accelerometer",
+                    "is_correct": false,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "Gyroscope",
+                    "is_correct": true,
+                    "sequence_order": 2
+                  },
+                  {
+                    "option_text": "Ultrasonic sensor",
+                    "is_correct": false,
+                    "sequence_order": 3
+                  },
+                  {
+                    "option_text": "Pressure sensor",
+                    "is_correct": false,
+                    "sequence_order": 4
+                  }
+                ]
+              },
+              {
+                "question_text": "LIDAR is a technology that uses light to measure distance.",
+                "question_type": "true_false",
+                "sequence_order": 2,
+                "options": [
+                  {
+                    "option_text": "True",
+                    "is_correct": true,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "False",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "title": "Processing Sensor Data",
+          "description": "Techniques for processing and interpreting data from robot sensors.",
+          "content": "<p>This lecture explores how to process and interpret the data collected by robot sensors. We'll look at filtering, calibration, and fusion techniques.</p><h3>Topics covered:</h3><ul><li>Signal processing basics</li><li>Sensor calibration</li><li>Filtering techniques</li><li>Sensor fusion algorithms</li></ul>",
+          "duration": "55 minutes",
+          "sequence_order": 2,
+          "video_url": "https://res.cloudinary.com/demo/video/upload/v1580125016/sample.mp4",
+          "slides_url": "https://res.cloudinary.com/demo/raw/upload/v1580125016/sample.pdf",
+          "quiz": {
+            "title": "Sensor Data Processing Quiz",
+            "description": "Test your understanding of sensor data processing.",
+            "passing_score": 70,
+            "questions": [
+              {
+                "question_text": "Which algorithm is commonly used for sensor fusion?",
+                "question_type": "multiple_choice",
+                "sequence_order": 1,
+                "options": [
+                  {
+                    "option_text": "Binary search",
+                    "is_correct": false,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "Bubble sort",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  },
+                  {
+                    "option_text": "Kalman filter",
+                    "is_correct": true,
+                    "sequence_order": 3
+                  },
+                  {
+                    "option_text": "Depth-first search",
+                    "is_correct": false,
+                    "sequence_order": 4
+                  }
+                ]
+              },
+              {
+                "question_text": "Noise filtering is an important step in processing sensor data.",
+                "question_type": "true_false",
+                "sequence_order": 2,
+                "options": [
+                  {
+                    "option_text": "True",
+                    "is_correct": true,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "False",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "project": {
+        "title": "Sensor Integration Project",
+        "description": "Create a program that integrates multiple sensors for improved environment perception.",
+        "instructions": "<p>In this project, you'll create a program that integrates data from multiple sensors to improve a robot's perception of its environment.</p><h3>Requirements:</h3><ol><li>Use at least three different sensor types</li><li>Implement filtering for each sensor</li><li>Create a sensor fusion algorithm</li><li>Visualize the combined sensor data</li><li>Demonstrate improved accuracy compared to individual sensors</li></ol>",
+        "resources_urls": [
+          "https://example.com/robotics/sensor-fusion-guide",
+          "https://example.com/robotics/sensor-datasets"
+        ],
+        "submission_type": "file"
+      }
+    },
+    {
+      "title": "Actuators and Control",
+      "description": "Learn how to control robot movements using different types of actuators.",
+      "sequence_order": 4,
+      "lectures": [
+        {
+          "title": "Types of Robot Actuators",
+          "description": "Overview of different actuator types and their applications.",
+          "content": "<p>This lecture introduces the various types of actuators used in robotics, from motors to hydraulics and pneumatics.</p><h3>Topics covered:</h3><ul><li>DC and servo motors</li><li>Stepper motors</li><li>Hydraulic actuators</li><li>Pneumatic systems</li></ul>",
+          "duration": "50 minutes",
+          "sequence_order": 1,
+          "video_url": "https://res.cloudinary.com/demo/video/upload/v1580125016/sample.mp4",
+          "slides_url": "https://res.cloudinary.com/demo/raw/upload/v1580125016/sample.pdf",
+          "quiz": {
+            "title": "Actuators Quiz",
+            "description": "Test your knowledge of robot actuators.",
+            "passing_score": 70,
+            "questions": [
+              {
+                "question_text": "Which actuator type provides the most precise position control?",
+                "question_type": "multiple_choice",
+                "sequence_order": 1,
+                "options": [
+                  {
+                    "option_text": "DC motor",
+                    "is_correct": false,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "Servo motor",
+                    "is_correct": true,
+                    "sequence_order": 2
+                  },
+                  {
+                    "option_text": "Solenoid",
+                    "is_correct": false,
+                    "sequence_order": 3
+                  },
+                  {
+                    "option_text": "Pneumatic cylinder",
+                    "is_correct": false,
+                    "sequence_order": 4
+                  }
+                ]
+              },
+              {
+                "question_text": "Stepper motors move in discrete steps rather than continuous rotation.",
+                "question_type": "true_false",
+                "sequence_order": 2,
+                "options": [
+                  {
+                    "option_text": "True",
+                    "is_correct": true,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "False",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "title": "Motor Control Techniques",
+          "description": "Understanding different approaches to controlling motors in robotics.",
+          "content": "<p>This lecture explores different techniques for controlling motors in robotics applications, from basic speed control to precise position control.</p><h3>Topics covered:</h3><ul><li>PWM speed control</li><li>PID position control</li><li>Motor drivers and H-bridges</li><li>Feedback mechanisms</li></ul>",
+          "duration": "55 minutes",
+          "sequence_order": 2,
+          "video_url": "https://res.cloudinary.com/demo/video/upload/v1580125016/sample.mp4",
+          "slides_url": "https://res.cloudinary.com/demo/raw/upload/v1580125016/sample.pdf",
+          "quiz": {
+            "title": "Motor Control Quiz",
+            "description": "Test your understanding of motor control techniques.",
+            "passing_score": 70,
+            "questions": [
+              {
+                "question_text": "What does PWM stand for in motor control?",
+                "question_type": "multiple_choice",
+                "sequence_order": 1,
+                "options": [
+                  {
+                    "option_text": "Powered Working Mechanism",
+                    "is_correct": false,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "Pulse Width Modulation",
+                    "is_correct": true,
+                    "sequence_order": 2
+                  },
+                  {
+                    "option_text": "Proportional Wattage Management",
+                    "is_correct": false,
+                    "sequence_order": 3
+                  },
+                  {
+                    "option_text": "Performance Working Mode",
+                    "is_correct": false,
+                    "sequence_order": 4
+                  }
+                ]
+              },
+              {
+                "question_text": "PID controllers use feedback to improve control accuracy.",
+                "question_type": "true_false",
+                "sequence_order": 2,
+                "options": [
+                  {
+                    "option_text": "True",
+                    "is_correct": true,
+                    "sequence_order": 1
+                  },
+                  {
+                    "option_text": "False",
+                    "is_correct": false,
+                    "sequence_order": 2
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "project": {
+        "title": "Precision Motor Control Project",
+        "description": "Implement a PID controller for precise motor position control.",
+        "instructions": "<p>In this project, you'll implement a PID controller to achieve precise position control of a motor.</p><h3>Requirements:</h3><ol><li>Set up a motor with position feedback</li><li>Implement a PID controller algorithm</li><li>Tune the PID parameters</li><li>Test the controller with different position targets</li><li>Analyze the performance and response time</li></ol>",
+        "resources_urls": [
+          "https://example.com/robotics/pid-control-guide",
+          "https://example.com/robotics/motor-simulation-tool"
+        ],
+        "submission_type": "file"
+      }
+    }
+  ],
+  "capstone_project": {
+    "title": "Autonomous Navigation Robot",
+    "description": "Design and program a robot capable of autonomous navigation in a simple environment.",
+    "instructions": "<p>For your capstone project, you'll design and program a robot capable of autonomously navigating through an environment while avoiding obstacles.</p><h3>Requirements:</h3><ol><li>Select appropriate sensors for environment perception</li><li>Implement sensor data processing algorithms</li><li>Develop a navigation algorithm</li><li>Program obstacle avoidance behaviors</li><li>Test and refine your solution</li><li>Demonstrate the robot navigating a course with obstacles</li></ol>",
+    "requirements": "Your solution should include sensor integration, path planning, obstacle avoidance, and clear documentation of your design decisions and implementation. The robot should successfully navigate from a starting point to a goal point while avoiding obstacles.",
+    "resources_urls": [
+      "https://example.com/robotics/navigation-algorithms",
+      "https://example.com/robotics/obstacle-avoidance",
+      "https://example.com/robotics/simulation-environment"
+    ],
+    "submission_type": "file"
+  }
+}

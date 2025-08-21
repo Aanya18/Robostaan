@@ -30,6 +30,13 @@ import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
 import Partnership from './pages/Partnership';
 
+// Admin course module components
+import CourseModuleManager from './components/Admin/CourseModuleManager';
+import LectureManager from './components/Admin/LectureManager';
+import QuizManager from './components/Admin/QuizManager';
+import ProjectManager from './components/Admin/ProjectManager';
+import CapstoneManager from './components/Admin/CapstoneManager';
+
 function useSupabasePing() {
   useEffect(() => {
     const connection = getSupabaseConnection();
@@ -76,6 +83,11 @@ function App() {
                 <Route path="my-courses" element={<MyCourses />} />
                 <Route path="my-projects" element={<MyProjects />} />
                 <Route path="admin" element={<AdminPanel />} />
+                <Route path="admin/course/:courseId/modules" element={<CourseModuleManager />} />
+                <Route path="admin/course/:courseId/module/:moduleId/lectures" element={<LectureManager />} />
+                <Route path="admin/course/:courseId/module/:moduleId/lecture/:lectureId/quiz" element={<QuizManager />} />
+                <Route path="admin/course/:courseId/module/:moduleId/project" element={<ProjectManager />} />
+                <Route path="admin/course/:courseId/capstone" element={<CapstoneManager />} />
                 <Route path="privacy" element={<Privacy />} />
                 <Route path="terms" element={<Terms />} />
                 <Route path="cookies" element={<Cookies />} />

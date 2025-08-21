@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Users, Star, Play, Download, BookOpen } from 'lucide-react';
+import { ArrowLeft, Clock, Users, Star, Play, Download, BookOpen, Book, Layers, LucideGraduationCap, Settings } from 'lucide-react';
 import { getSupabaseConnection } from '../lib/supabaseConnection';
 import QuillContent from '../components/RichTextEditor/QuillContent';
+import CourseModules from '../components/CourseCard/CourseModules';
+import { courseModuleService } from '../services/courseModuleService';
+import { useAuth } from '../components/Auth/AuthProvider';
 
 type Course = {
   id: string;
@@ -20,9 +23,19 @@ type Course = {
   materials?: string[];
 };
 
+type CourseStructure = {
+  modules: any[];
+  capstoneProject: any;
+};
+
+
 const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
+  const [courseStructure, setCourseStructure] = useState<CourseStructure | null>(null);
+  const [activeTab, setActiveTab] = useState('content');
+  const [userEnrolled, setUserEnrolled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const connection = getSupabaseConnection();
@@ -32,6 +45,8 @@ const CourseDetail: React.FC = () => {
       if (!id) return;
 
       try {
+        setLoading(true);
+        // Fetch course details
         const { data, error } = await connection.executeWithRetry(async (client) => {
           return await client
           .from('courses')
@@ -42,6 +57,35 @@ const CourseDetail: React.FC = () => {
 
         if (error) throw error;
         setCourse(data);
+        
+        // Fetch course structure (modules, lectures, etc.)
+        try {
+          const structure = await courseModuleService.getCompleteCourseStructure(id);
+          setCourseStructure(structure);
+        } catch (structureError) {
+          console.error('Error fetching course structure:', structureError);
+          // Don't fail the whole page load if structure can't be fetched
+          setCourseStructure({ modules: [], capstoneProject: null });
+        }
+        
+        // Check if user is enrolled
+        if (user) {
+          try {
+            const { data: enrollments } = await connection.executeWithRetry(async (client) => {
+              return await client
+              .from('course_enrollments')
+              .select('*')
+              .eq('user_id', user.id)
+              .eq('course_id', id)
+              .single();
+            });
+            
+            setUserEnrolled(!!enrollments);
+          } catch (enrollError) {
+            console.error('Error checking enrollment status:', enrollError);
+            setUserEnrolled(false);
+          }
+        }
       } catch (err) {
         setError('Failed to load course');
         console.error('Error fetching course:', err);
@@ -51,7 +95,7 @@ const CourseDetail: React.FC = () => {
     };
 
     fetchCourse();
-  }, [id, connection]);
+  }, [id, connection, user]);
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -197,20 +241,118 @@ const CourseDetail: React.FC = () => {
               </motion.div>
             )}
 
-            {/* Course Content */}
+            {/* Course Content Tabs */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
               className="mb-8"
             >
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Course Content
-              </h2>
-              <QuillContent 
-                content={course.content}
-                className="prose prose-lg max-w-none course-content"
-              />
+              <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+                <div className="flex -mb-px space-x-8">
+                  <button
+                    onClick={() => setActiveTab('content')}
+                    className={`py-4 px-1 inline-flex items-center border-b-2 font-medium text-sm ${activeTab === 'content' 
+                      ? 'border-orange-500 text-orange-600 dark:text-orange-500' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}
+                    `}
+                  >
+                    <BookOpen className="mr-2 w-5 h-5" />
+                    <span>Description</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setActiveTab('modules')}
+                    className={`py-4 px-1 inline-flex items-center border-b-2 font-medium text-sm ${activeTab === 'modules' 
+                      ? 'border-orange-500 text-orange-600 dark:text-orange-500' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}
+                    `}
+                  >
+                    <Layers className="mr-2 w-5 h-5" />
+                    <span>Course Modules</span>
+                  </button>
+                  
+                  {courseStructure?.capstoneProject && (
+                    <button
+                      onClick={() => setActiveTab('capstone')}
+                      className={`py-4 px-1 inline-flex items-center border-b-2 font-medium text-sm ${activeTab === 'capstone' 
+                        ? 'border-orange-500 text-orange-600 dark:text-orange-500' 
+                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}
+                      `}
+                    >
+                      <LucideGraduationCap className="mr-2 w-5 h-5" />
+                      <span>Capstone Project</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Tab Content */}
+              <div>
+                {activeTab === 'content' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                      Course Overview
+                    </h2>
+                    <QuillContent 
+                      content={course.content}
+                      className="prose prose-lg max-w-none course-content"
+                    />
+                  </div>
+                )}
+                
+                {activeTab === 'modules' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                      Course Modules
+                    </h2>
+                    {courseStructure?.modules && (
+                      <CourseModules 
+                        courseId={id || ''} 
+                        modules={courseStructure.modules} 
+                        userEnrolled={userEnrolled}
+                      />
+                    )}
+                  </div>
+                )}
+                
+                {activeTab === 'capstone' && courseStructure?.capstoneProject && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                      Capstone Project
+                    </h2>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                        {courseStructure.capstoneProject.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300 mb-4">
+                        {courseStructure.capstoneProject.description}
+                      </p>
+                      
+                      <div className="mb-6">
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Requirements</h4>
+                        <p className="text-gray-700 dark:text-gray-300">
+                          {courseStructure.capstoneProject.requirements}
+                        </p>
+                      </div>
+                      
+                      {userEnrolled ? (
+                        <Link 
+                          to={`/course/${id}/capstone`}
+                          className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                        >
+                          <Book className="w-4 h-4 mr-2" />
+                          View Full Project Details
+                        </Link>
+                      ) : (
+                        <div className="text-gray-500 dark:text-gray-400 italic">
+                          Enroll in the course to access the capstone project
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </motion.div>
           </div>
 
@@ -226,13 +368,57 @@ const CourseDetail: React.FC = () => {
                 Enroll in this Course
               </h3>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full bg-orange-500 text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors mb-6"
-              >
-                Enroll Now - Free
-              </motion.button>
+              {!userEnrolled ? (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={async () => {
+                    if (!user) {
+                      alert('Please log in to enroll in this course');
+                      return;
+                    }
+                    
+                    try {
+                      await connection.executeWithRetry(async (client) => {
+                        return await client
+                          .from('course_enrollments')
+                          .insert({
+                            user_id: user.id,
+                            course_id: id,
+                            enrolled_at: new Date().toISOString(),
+                            progress: 0
+                          });
+                      });
+                      
+                      setUserEnrolled(true);
+                      alert('Successfully enrolled in the course!');
+                    } catch (error) {
+                      console.error('Error enrolling in course:', error);
+                      alert('Failed to enroll in the course. Please try again.');
+                    }
+                  }}
+                  className="w-full bg-orange-500 text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors mb-4"
+                >
+                  Enroll Now - Free
+                </motion.button>
+              ) : (
+                <div className="w-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 py-3 rounded-lg font-medium text-center mb-4">
+                  You're enrolled in this course
+                </div>
+              )}
+              
+              {isAdmin && (
+                <Link to={`/admin/course/${id}/modules`}>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full bg-blue-500 text-white py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors mb-6 flex items-center justify-center"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    <span>Manage Course Modules</span>
+                  </motion.button>
+                </Link>
+              )}
 
               <div className="space-y-4 mb-6">
                 <div className="flex items-center justify-between">

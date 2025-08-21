@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Plus, X, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Search, Filter, Plus, X, ToggleLeft, ToggleRight, Upload } from 'lucide-react';
+import { cloudinaryService } from '../services/cloudinaryService';
 import CourseCard from '../components/CourseCard/CourseCard';
 import RichTextEditor from '../components/RichTextEditor/RichTextEditor';
 import { useApp } from '../context/AppContext';
 import { Course } from '../lib/supabaseService';
 import SEOHead from '../components/SEO/SEOHead';
 import { siteConfig, urlHelpers } from '../config/siteConfig';
+import { useNavigate } from 'react-router-dom';
 
 const Courses: React.FC = () => {
+  const navigate = useNavigate();
   const { courses, isAdmin, loading, addCourse, updateCourse, deleteCourse, refreshData } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -27,6 +30,39 @@ const Courses: React.FC = () => {
     featured: false,
     coming_soon: false
   });
+
+  // Image upload state
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+
+    const file = e.target.files[0];
+
+    // Validate file type/size
+    const validation = cloudinaryService.validateFile(file, 'image');
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      const result = await cloudinaryService.uploadFile(file, {
+        resourceType: 'image',
+        folder: 'courses',
+        tags: ['course', 'cover']
+      });
+
+      // Update image field with uploaded URL
+      setFormData(prev => ({ ...prev, image: result.secure_url }));
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const categories = ['Beginner', 'Intermediate', 'Advanced'];
 
@@ -68,10 +104,13 @@ const Courses: React.FC = () => {
           : formData.title
       };
 
+      let newCourseId;
       if (editingCourse) {
-        await updateCourse(editingCourse.id, courseData);
+        const { data } = await updateCourse(editingCourse.id, courseData);
+        newCourseId = editingCourse.id;
       } else {
-        await addCourse(courseData);
+        const { data } = await addCourse(courseData);
+        newCourseId = data?.id;
       }
 
       setFormData({
@@ -88,6 +127,11 @@ const Courses: React.FC = () => {
       });
       setShowModal(false);
       setEditingCourse(null);
+      
+      // Redirect to module management page after successful course creation
+      if (newCourseId && !formData.coming_soon) {
+        navigate(`/admin/course/${newCourseId}/modules`);
+      }
     } catch (error) {
       console.error('Error saving course:', error);
       alert('Error saving course. Please try again.');
@@ -426,8 +470,44 @@ const Courses: React.FC = () => {
                       value={formData.image}
                       onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      required
+                      placeholder="https://example.com/cover.png"
                     />
+
+                    <div className="mt-3">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Or Upload Image
+                      </label>
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          id="course-image-upload"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={uploadingImage}
+                        />
+                        <label
+                          htmlFor="course-image-upload"
+                          className={`px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer flex items-center space-x-2 ${uploadingImage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                        >
+                          {uploadingImage ? (
+                            <>
+                              <div className="w-4 h-4 border-t-2 border-b-2 border-gray-500 rounded-full animate-spin"></div>
+                              <span>Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4" />
+                              <span>{formData.image ? 'Change Image' : 'Upload Image'}</span>
+                            </>
+                          )}
+                        </label>
+                      </div>
+
+                      {formData.image && (
+                        <img src={formData.image} alt="Course cover" className="mt-2 w-full h-40 object-cover rounded" />
+                      )}
+                    </div>
                   </div>
 
                   <div>
@@ -520,7 +600,8 @@ const Courses: React.FC = () => {
                 <div className="flex space-x-4 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                    className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-60"
+                    disabled={uploadingImage}
                   >
                     {editingCourse ? 'Update Course' : 'Add Course'}
                   </button>
